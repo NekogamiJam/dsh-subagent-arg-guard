@@ -88,6 +88,26 @@ node --check lib/index.js
 
 ## 交付与安装
 
+### 快速从 GitHub 安装
+
+本插件不需要先发布到 npm 或进入插件市场。推荐使用固定版本 Release 的 `.tgz` 下载直链：
+
+```text
+https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.1.0/dsh-subagent-arg-guard-0.1.0.tgz
+```
+
+在 DSH 对话中，请模型先用 `plugin_manager` 的 `list_bundles` 检查，再以此 URL 为 `target` 执行 `install_bundle`（`enabled: true`），最后复查版本、安装/启用状态及是否需要重启。版本不匹配时停止，不授予版本豁免；不要从 npm 按同名包安装。
+
+也可以先完全退出使用该 profile 的 DSH，再通过 CLI 安装，然后重新打开并核对启用状态（以下 `desktop` 应替换为你实际使用的 profile）：
+
+```sh
+dsh plugin --profile desktop add "https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.1.0/dsh-subagent-arg-guard-0.1.0.tgz"
+```
+
+[首页的完整快速安装步骤](README.md#快速安装) 包含可直接粘贴给模型的安装请求、Windows 未加入 PATH 时的启动器写法、浏览器下载与校验、本地绝对路径安装和关闭/卸载方式。“仅 GitHub”指本插件的来源；安装器处理现有 profile 的其他依赖时仍可能访问其 registry。
+
+### 发布与验证边界
+
 源码与版本发布位于 [GitHub 项目](https://github.com/NekogamiJam/dsh-subagent-arg-guard)。[GitHub Releases](https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases) 提供标准 npm `.tgz` 安装包及 SHA-256 校验文件；GitHub 的源码归档包含完整测试与第三方许可证。
 
 安装包含 ESM 入口、`dsh.bundle.patch`、发布元信息与文档，不包含测试夹具、npm 缓存或运行日志。**本项目未发布 npm**，不能直接按 npm 包名从公共 npm 仓库安装。
