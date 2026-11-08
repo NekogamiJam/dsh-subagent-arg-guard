@@ -1,0 +1,4 @@
+# Loaded only if the user installs/enables this bundle.
+- insert:
+    - id: dsh-subagent-arg-guard
+      name: dsh-subagent-arg-guard

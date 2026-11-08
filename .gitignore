@@ -1,0 +1,21 @@
+# Generated packages and local build/smoke output
+/dist/
+
+# Dependency caches and machine-specific configuration
+/node_modules/
+/.npm-cache/
+/.pnpm-store/
+.npmrc
+.env
+.env.*
+
+# Local test/debug output
+*.log
+*.tmp
+*.temp
+
+# OS/editor-local files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
