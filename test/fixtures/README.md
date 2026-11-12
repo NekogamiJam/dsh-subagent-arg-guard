@@ -23,6 +23,12 @@ Copyright (c) 2026 DeepSeek。MIT 许可原文见 [LICENSE.DSH](LICENSE.DSH)，�
 
 Copyright (c) 2026 LaoDing。MIT 许可原文见 [LICENSE.default-model](LICENSE.default-model)。
 
+## DSH 0.2.2-rc.2
+
+[rc2/provenance.json](rc2/provenance.json) 记录官方 npm 包版本、下载地址与 registry integrity。本次下载先验证 tarball SHA-512，再逐字节复制六个发行文件至 [rc2/](rc2/)；未运行安装脚本、未升级宿主。包含 tools、pipeline、shared validator、subagent、Native 与 PTC 的编译发行代码。
+
+原始 SHA-256 见 [rc2/sha256.json](rc2/sha256.json)。版权仍为 Copyright (c) 2026 DeepSeek，原包 MIT 许可与 [LICENSE.DSH](LICENSE.DSH) 一致。rc.2 没有复制默认模型插件夹具，不能据此认定默认模型插件 2.2.0 兼容 rc.2。
+
 ## 完整性
 
 [sha256.json](sha256.json) 记录所有源码夹具的原始 SHA-256。从项目根目录运行 `node test/verify-fixtures.mjs` 验证。

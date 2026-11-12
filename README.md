@@ -1,24 +1,34 @@
 # dsh-subagent-arg-guard
 
-独立、零运行依赖的 DSH 子代理参数补救插件。
+独立的 DSH 子代理参数补救插件。
 
 当原生 `subagent` / `subagent_fork` 因特定的选模参数错误而失败时，删除 `provider`、`model`、`reasoning_effort` 后重试一次，让调用恢复原本的默认行为。无需安装默认模型插件，也不会接管模型池、修改合法显式选择或放宽权限。
 
-**当前版本：0.1.0。仅审计并声明兼容 DSH 0.2.2-rc.1；Node.js >=22。**
+**版本：0.2.0。包含 DSH 0.2.2-rc.1 / rc.2 的对应逻辑；Node.js >=22。127 项隔离测试通过，13 个第三方夹具哈希校验通过。rc.1 开发包已完成本地安装、空选模参数真实冒烟，以及设置页显示/保存提示确认；rc.2 仅有离线覆盖。**
+
+### 验证范围
+
+我会继续使用 **DSH 0.2.2-rc.1**，**不会为 0.2.2-rc.2 升级本机，也不会对 rc.2 进行实机适配或验收**。现有 rc.2 分支及隔离回归测试保留，但仅代表基于官方发行代码的离线适配，**不承诺 rc.2 的实机可用性**；版本声明不等同于实机验证。
+
+运行时使用宿主公开版本 API 精确分支，未知版本/检测失败时停用补救；原生 Config 与「插件 → 已安装 → 本插件配置行」提供四项短开关。勾选后自动保存，成功后后续调用读取新设置，无需刷新或重启 DSH。设置 schema 使用 Schemastery 轻量依赖，宿主 app-boot 与客户端 slots 只声明 optional peers，不打包另一份 DSH。详见 [双版本识别与设置](README.zh-CN.md#双版本识别与设置)。
 
 ## 文档与下载
 
 - [完整中文说明](README.zh-CN.md)：精确补救范围、兼容限制、审计语义和安装说明。
-- [测试与验证报告](TESTING.zh-CN.md)：65 项隔离测试，以及独立的真实进程冒烟验证；未验证项单独列出。
+- [测试与验证报告](TESTING.zh-CN.md)：127 项双版本隔离测试、真实 rc.1 原生 Config/版本只读探针与明确的未验证项；另保留旧版真实冒烟历史。
 - [GitHub Releases](https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases)：安装包与 SHA-256 校验文件。未发布 npm，不应直接按包名从 npm 安装。
+
+## 版本与依赖
+
+0.2.0 的运行逻辑与已验收的 0.2.0-local.2 相同，仅更新正式版本号与发布文档。完整重启持久化和全部设置生效矩阵仍未完成，不安排 rc.2 实机验证。宿主必须提供 app-boot peer，不能自行安装嵌套 app-boot 副本替代运行中宿主；正常 DSH profile resolver 会路由到宿主包。
 
 ## 快速安装
 
 **本插件仅通过 GitHub 发布，未发布 npm，也不要求先进入 DSH 插件市场。** 推荐安装固定版本的 Release `.tgz`，无需先 clone 仓库或安装 `gh`。
 
-- 适用版本：**DSH 0.2.2-rc.1**，Node.js >=22。其他 DSH 版本先不要装，不要授予版本豁免。
-- [v0.1.0 安装包直链](https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.1.0/dsh-subagent-arg-guard-0.1.0.tgz)
-- [同版本 SHA-256 校验文件](https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.1.0/SHA256SUMS.txt)
+- 推荐使用：**DSH 0.2.2-rc.1**，Node.js >=22。manifest 另列 rc.2，但仅离线覆盖、无实机可用性承诺；其他 DSH 版本不要安装，不授予版本豁免。
+- [v0.2.0 安装包直链](https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.2.0/dsh-subagent-arg-guard-0.2.0.tgz)
+- [同版本 SHA-256 校验文件](https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.2.0/SHA256SUMS.txt)
 
 ### 方法一：在 DSH 对话中让模型安装（推荐）
 
@@ -27,14 +37,15 @@
 ```text
 请使用 DSH 的 plugin_manager 工具安装并启用 dsh-subagent-arg-guard。
 先 list_bundles 检查当前安装状态，再通过 install_bundle 安装：
-target: https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.1.0/dsh-subagent-arg-guard-0.1.0.tgz
+target: https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.2.0/dsh-subagent-arg-guard-0.2.0.tgz
 enabled: true
 
-插件仅兼容 DSH 0.2.2-rc.1；版本不符时请停止，不授予版本豁免。
+请先核对 DSH 版本：rc.1 已有本地实机证据；rc.2 仅离线覆盖，安装前明确提示实机未验证。
+其他 DSH 版本请停止，不授予版本豁免，不升级宿主。
 请直接使用以上 GitHub Release 地址，不要从 npm 按同名包安装，
 不额外安装默认模型插件，不修改 ASAR，不批准额外的安装脚本。
 沿用当前 registry 配置；可选参数不用时请省略，不要填写空字符串。
-完成后再次 list_bundles，确认版本为 0.1.0、installed 和 enabled 都为 true，
+完成后再次 list_bundles，确认版本为 0.2.0、installed 和 enabled 都为 true，
 并报告 application 状态；如果需要重启，请明确告诉我，不要把未生效说成成功。
 ```
 
@@ -47,7 +58,7 @@ enabled: true
 先完全退出使用该 profile 的 DSH（桌面版包括托盘），在终端执行：
 
 ```sh
-dsh plugin --profile desktop add "https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.1.0/dsh-subagent-arg-guard-0.1.0.tgz"
+dsh plugin --profile desktop add "https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.2.0/dsh-subagent-arg-guard-0.2.0.tgz"
 ```
 
 安装命令成功后重新打开 DSH，并用 `plugin_manager` 的 `list_bundles` 或插件管理页核对安装与启用状态。DSH 会通过自己的 profile 包管理流程识别 bundle；不要在普通工作区中用 `npm install dsh-subagent-arg-guard` 代替。
@@ -55,7 +66,7 @@ dsh plugin --profile desktop add "https://github.com/NekogamiJam/dsh-subagent-ar
 如果 Windows 标准安装的 `dsh` 没有加入 PATH，可在 PowerShell 使用启动器路径：
 
 ```powershell
-& "$env:LOCALAPPDATA\Programs\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop add "https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.1.0/dsh-subagent-arg-guard-0.1.0.tgz"
+& "$env:LOCALAPPDATA\Programs\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop add "https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.2.0/dsh-subagent-arg-guard-0.2.0.tgz"
 ```
 
 该路径只适用于 Windows 标准安装位置；自定义安装或其他系统请使用各自实际的 `dsh` 启动器。
@@ -65,13 +76,13 @@ dsh plugin --profile desktop add "https://github.com/NekogamiJam/dsh-subagent-ar
 如果模型或安装入口不能处理远程 URL，先从上述 Release 下载 `.tgz` 和 `SHA256SUMS.txt`。在下载目录中核对包的 SHA-256，例如 PowerShell：
 
 ```powershell
-Get-FileHash .\dsh-subagent-arg-guard-0.1.0.tgz -Algorithm SHA256
+Get-FileHash .\dsh-subagent-arg-guard-0.2.0.tgz -Algorithm SHA256
 ```
 
 输出应与 `SHA256SUMS.txt` 中的值一致。然后完全退出 DSH，在同一 PowerShell 中安装下载包：
 
 ```powershell
-$package = (Resolve-Path ".\dsh-subagent-arg-guard-0.1.0.tgz").Path
+$package = (Resolve-Path ".\dsh-subagent-arg-guard-0.2.0.tgz").Path
 dsh plugin --profile desktop add "$package"
 ```
 
@@ -87,7 +98,7 @@ dsh plugin --profile desktop add "$package"
 dsh plugin --profile desktop remove dsh-subagent-arg-guard
 ```
 
-**安装范围说明：**“仅 GitHub”指本插件的发布/下载来源，不代表 DSH 的全部网络流量只访问 GitHub。安装器仍可能按现有配置访问 registry 处理 profile 的其他依赖；不要因此把插件 target 改成 npm 同名包。本段方法依据 DSH 0.2.2-rc.1 的安装 spec、工具和 CLI 接口核对；现有真实验收是本地 `.tgz` 安装/启用与一次空字段冒烟，不冒充每条远程安装、UI 或卸载路径都已实测。
+**安装范围说明：**“仅 GitHub”指本插件的发布/下载来源，不代表 DSH 的全部网络流量只访问 GitHub。安装器仍可能按现有配置访问 registry 处理 profile 的其他依赖；不要因此把插件 target 改成 npm 同名包。本段方法依据 DSH 0.2.2-rc.1 的安装 spec、工具和 CLI 接口核对；真实验收覆盖开发包的本地 `.tgz` 安装/启用、空字段冒烟及设置页/保存提示，不代表每条远程安装或卸载路径都已实测。
 
 ## 从源码验证
 
@@ -95,9 +106,8 @@ dsh plugin --profile desktop remove dsh-subagent-arg-guard
 
 ```sh
 node test/verify-fixtures.mjs
-node --experimental-vm-modules test/guard.test.mjs
-node --check lib/guard.js
-node --check lib/index.js
+node --experimental-vm-modules test/all.test.mjs
+npm run check
 ```
 
 ## 许可

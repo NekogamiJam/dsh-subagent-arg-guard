@@ -1,0 +1,30 @@
+{
+  "packages": [
+    {
+      "name": "@deepseek-ai/dsh-tool-executor-native",
+      "version": "0.2.2-rc.2",
+      "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-tool-executor-native/-/dsh-tool-executor-native-0.2.2-rc.2.tgz",
+      "integrity": "sha512-OuAq+Osfx/Ot+Rsuqg0wi4QEiBIR0XxAaZJbQzhznVU+hNzSFQVW8OL2EIPfuq41bOyahu24n/AWlSYkb6Y1zA=="
+    },
+    {
+      "name": "@deepseek-ai/dsh-tool-executor-ptc",
+      "version": "0.2.2-rc.2",
+      "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-tool-executor-ptc/-/dsh-tool-executor-ptc-0.2.2-rc.2.tgz",
+      "integrity": "sha512-6UNeZMo0MD6bLLPKITScBbeD3L2To84BFN4TNZFtGHsdhqfOinR4YkhLwcqBzgFnEvlNnV0DdoYodPcxyfBm2w=="
+    },
+    {
+      "name": "@deepseek-ai/dsh-tool-subagent",
+      "version": "0.2.2-rc.2",
+      "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-tool-subagent/-/dsh-tool-subagent-0.2.2-rc.2.tgz",
+      "integrity": "sha512-N5CkLrpalC/eo8imRk4s0WnfFqPWCJOiCrsBXAafxdtXnRbJG06ldCFDEA55bMilg2SnhXB3PoPCxy9cE0qHKw=="
+    },
+    {
+      "name": "@deepseek-ai/dsh-tools",
+      "version": "0.2.2-rc.2",
+      "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-tools/-/dsh-tools-0.2.2-rc.2.tgz",
+      "integrity": "sha512-CqXtsX/ztS1M8xs5Q8z9S6xGuKa64jI0XTjNzeEpI+1GnCXt9RBONKUfWsxMKoqopAUjuIeiYMc9SCvh+6vIXQ=="
+    }
+  ],
+  "acquired": "2026-11-12",
+  "note": "Official npm distributions; tarball SHA-512 checked against registry metadata before extracting. Test filenames map to lib/index.js, lib/pipeline.js and lib/shared-DGx6D7zk.js without byte changes."
+}

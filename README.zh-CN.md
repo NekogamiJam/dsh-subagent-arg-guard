@@ -1,8 +1,13 @@
 # dsh-subagent-arg-guard
 
-独立、零运行依赖的子代理参数补救插件。只在当前原生 `subagent` / `subagent_fork` 返回特定选模参数错误时，删除整个选模参数组并重试一次，恢复该调用原本的默认行为。
+独立的子代理参数补救插件。只在当前原生 `subagent` / `subagent_fork` 返回特定选模参数错误时，删除整个选模参数组并重试一次，恢复该调用原本的默认行为。
 
-**版本：0.1.0。当前验证范围：DSH 0.2.2-rc.1，Native / PTC 执行器。已通过 65 项隔离测试，并在 Windows 真实 DSH 进程中完成本地包安装/启用及一次空选模字段冒烟；完整真实环境回归范围见测试报告。**
+**版本：0.2.0。包含 DSH 0.2.2-rc.1 / 0.2.2-rc.2 的对应逻辑，覆盖 Native / PTC；127 项隔离测试与 13 个夹具哈希校验通过。rc.1 开发包已完成本地安装、空选模参数真实冒烟及设置页/保存提示确认。正式版运行逻辑与已验收 local.2 相同；rc.2 没有实机验收。**
+
+## 验证范围
+
+我会继续使用 **DSH 0.2.2-rc.1**，**不会为 0.2.2-rc.2 升级本机，也不会对 rc.2 进行实机适配或验收**。现有 rc.2 分支和隔离回归测试保留，但仅属于基于官方发行代码的离线适配，**不承诺 rc.2 的实机可用性**；manifest 中列出该版本不等于已经完成实机验证。
+
 
 ## 解决什么
 
@@ -21,7 +26,19 @@
 | 默认模型插件不处理 fork（其通常默认行为） | fork 继续按原生规则继承，不强塞 spawn 的默认模型池 |
 | 原调用合法显式指定模型 | 完全不修改、不重试，合法显式选择仍优先 |
 
-没有运行时依赖、peer dependency、API Key、联网请求或安装脚本，也不依赖 dsh-subagent-default-model。
+不依赖 dsh-subagent-default-model；不需要 API Key，没有模型/网络请求或安装脚本。为原生设置 schema 新增轻量依赖 `@deepseek-ai/schemastery@3.18.4`；运行时版本来自宿主公开的 `@deepseek-ai/dsh-app-boot.getDshRuntimeVersion()`。宿主包与客户端 slots 声明为 optional peers，不要求安装另一份 DSH；版本 API 不可解析时明确停用补救，不猜版本。
+
+## 双版本识别与设置
+
+- rc.1：保留 `subagentId` 输出、无 presentationMeta 的原工具契约与该版本精确错误后缀。
+- rc.2：适配 `name` 输出、presentationMeta、effort 必须与 provider/model 同时提供的新错误；保留用户的 name，后端请求仍由原生工具构造。
+- 运行时读取宿主版本，精确选择对应分支。其他版本、API 缺失/异常或契约不符都不补救，原工具照常运行；没有用户可调的“强制版本”或版本豁免开关。
+
+设置入口为 **侧栏「插件」→「已安装」→ 本插件 → `dsh-subagent-arg-guard` 配置行**。使用宿主提供的原生 Config 表单/写入动作，不扫描 namespace、不手写 profile，也不额外占用主「设置」导航。
+
+四个短开关默认均开启：启用参数补救；补救 Session 不允许的显式路由；补救 fork；记录脱敏补救日志。点击单项即带当前 revision 写入；宿主不可写时禁用控件，拒绝/异常不显示成功。关闭 fork 补救不等于改变 fork 模型；关闭路由拒绝补救后，空值/类型/半 pair 仍可补救。
+
+配置字段为原生 volatile，勾选后自动保存；宿主确认保存成功后，后续子代理工具调用会读取新设置，**不需要手动刷新或重启 DSH**，也不会重启或改变已创建的子代理。保存期间显示“正在保存”；失败时不宣称生效，提示重试或返回插件列表后重新进入本页。设置页已在 rc.1 实机显示，保存交互由用户确认；重启后持久化和完整设置生效矩阵仍待验收。
 
 ## 精确补救范围
 
@@ -29,7 +46,8 @@
 
 - 当前原生工具的 `child LLM \`provider/model/reasoning_effort\` must be non-empty` 错误，并核对实际字段确为空字符串/空白字符串。
 - 当前原生工具的 provider/model 必须成对提供错误，并核对实际确实缺一半。
-- 当前原生工具的 Session 路由不允许错误，包括没有已记录选模策略时的确切后缀；完整显式路由必须与错误中的路由一致。
+- rc.2 的 `reasoning_effort` 未同时配齐 provider/model 的精确错误，并核对确实缺字段。
+- 当前原生工具的 Session 路由不允许错误，包括没有已记录选模策略时各版本的确切后缀；完整显式路由必须与错误中的路由一致。
 - `ToolArgsError` / `INVALID_ARGS`，仅当真实 schema 违反项全部属于模型三字段，且移除三字段后其他参数完全合法。
 - 当前官方工具禁用了显式选模、schema 隐藏模型字段，但调用仍额外提供模型字段时的确切拒绝。
 
@@ -57,7 +75,8 @@ API 鉴权、额度、429、超时、网络错误、模型适配器不存在、�
 
 ## 兼容与信任边界
 
-- `engines.dsh` 精确声明 `0.2.2-rc.1`；升级后应重新审计并运行测试，不建议绕过版本限制安装。Node >=22。
+- `engines.dsh` 精确声明 `0.2.2-rc.1 || 0.2.2-rc.2`；未知版本不特意兼容，不建议绕过版本限制。Node >=22。
+- 正常 profile resolver 将 app-boot peer import 路由到宿主；不要自行添加 dependency 或打包嵌套 app-boot 副本，否则该 API 可能返回副本版本而非宿主版本。本包没有这种依赖/捆绑。版本 API 不可用时不补救，而非扫描目录或猜版本。
 - 使用当前执行器的 `pipeline.constructor` 构造隔离的 retry 状态，逐次透传原 pipeline 的 resolve/reject 判定；不修改原 pipeline.source。
 - pipeline 的实例字段/阶段方法并不是承诺长期稳定的插件重派发 API。未知执行器、接口变化、schema 增加未审计约束时保守不补救，保留原错误。
 - 当前官方参数是 flat string/enum schema。验证器只实现这一严格白名单子集；遇到 minLength、oneOf、新类型、route enum 等约束，整工具不自动修复。
@@ -72,28 +91,29 @@ API 鉴权、额度、429、超时、网络错误、模型适配器不存在、�
 运行（不安装依赖、不联网）：
 
 ```sh
-node --experimental-vm-modules test/guard.test.mjs
+node --experimental-vm-modules test/all.test.mjs
 node test/verify-fixtures.mjs
-node --check lib/guard.js
-node --check lib/index.js
+npm run check
 ```
 
 也可以 `npm test`。VM 模块的 ExperimentalWarning 只涉及测试加载器，不是生产插件的要求。测试直接进程运行，不用 node --test 派生工作进程。
 
 上述隔离测试使用真实官方工具、参数验证与执行流水线代码；隔离替身包括 Cordis 服务、外部 SDK、session 服务、LLM 预检与 startActivation 后端。**隔离测试本身没有调用真实模型 API、创建真实运行中的子代理、验证 GUI 安装或验证真实账户额度。**
 
-另一次独立的真实进程冒烟已在 Windows DSH 0.2.2-rc.1 中完成：本地包安装/启用后，原生 `subagent` 的三个选模字段均为空字符串时仍成功创建子代理，并返回 `ARG_GUARD_SMOKE_OK`。该环境同时启用了 dsh-subagent-default-model 2.2.0；它不是所有环境或全部错误路径的全面验收。
+历史上旧版 **0.1.0** 在 Windows DSH 0.2.2-rc.1 中做过独立真实冒烟：安装/启用后空三字段成功创建子代理并返回 `ARG_GUARD_SMOKE_OK`，同时启用了默认模型插件 2.2.0。**该旧版证据不能代替 0.2.0 或 rc.2 的验收。** 另于 2026-11-12 安装 local.1 后，空三字段真实调用返回 `ARG_GUARD_LOCAL_020_SMOKE_OK`，用户确认设置页显示且点击后返回保存成功；完整重启持久化与设置生效矩阵尚未完成。local.2 修正后的保存提示也已在 rc.1 确认显示；0.2.0 只更新版本号与发布文档，不改运行逻辑。
 
 覆盖原版省略继承、合法显式模型、原生默认选项、实际默认模型池轮转、fork 默认与 opt-in、Native/PTC 准入、取消竞争、策略拒绝、await 中替换定义/执行器、一次补救上限、单次日志/后处理和误匹配防护。详见 [测试报告](TESTING.zh-CN.md)。
 
 ## 交付与安装
+
+正式版本 0.2.0 从固定 GitHub Release 下载。推荐 DSH rc.1；rc.2 仅离线适配且不承诺实机可用性。旧版 Release 保留，不覆盖旧资产。
 
 ### 快速从 GitHub 安装
 
 本插件不需要先发布到 npm 或进入插件市场。推荐使用固定版本 Release 的 `.tgz` 下载直链：
 
 ```text
-https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.1.0/dsh-subagent-arg-guard-0.1.0.tgz
+https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.2.0/dsh-subagent-arg-guard-0.2.0.tgz
 ```
 
 在 DSH 对话中，请模型先用 `plugin_manager` 的 `list_bundles` 检查，再以此 URL 为 `target` 执行 `install_bundle`（`enabled: true`），最后复查版本、安装/启用状态及是否需要重启。版本不匹配时停止，不授予版本豁免；不要从 npm 按同名包安装。
@@ -101,7 +121,7 @@ https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.1.0/d
 也可以先完全退出使用该 profile 的 DSH，再通过 CLI 安装，然后重新打开并核对启用状态（以下 `desktop` 应替换为你实际使用的 profile）：
 
 ```sh
-dsh plugin --profile desktop add "https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.1.0/dsh-subagent-arg-guard-0.1.0.tgz"
+dsh plugin --profile desktop add "https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.2.0/dsh-subagent-arg-guard-0.2.0.tgz"
 ```
 
 [首页的完整快速安装步骤](README.md#快速安装) 包含可直接粘贴给模型的安装请求、Windows 未加入 PATH 时的启动器写法、浏览器下载与校验、本地绝对路径安装和关闭/卸载方式。“仅 GitHub”指本插件的来源；安装器处理现有 profile 的其他依赖时仍可能访问其 registry。

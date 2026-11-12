@@ -3,4 +3,5 @@
 
 # Upstream fixtures are copied byte-for-byte; preserve their original hashes.
 test/fixtures/*.js -text
+test/fixtures/rc2/*.js -text
 test/fixtures/LICENSE.* -text

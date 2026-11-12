@@ -2,8 +2,9 @@ import vm from 'node:vm';
 import fs from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
-// Core source is unmodified 0.2.2-rc.1. Only external host/services are isolated.
-export async function loadCore() {
+// Unmodified official rc.1 / rc.2 code; only external host/services are isolated.
+export async function loadCore(version = '0.2.2-rc.1') {
+  if (!['0.2.2-rc.1', '0.2.2-rc.2'].includes(version)) throw new Error('unknown fixture version');
   const context = vm.createContext({ console, AbortController, AbortSignal, setTimeout, clearTimeout, structuredClone, Symbol, Error });
   const modules = new Map();
   const chain = new Proxy(function(value) { return value; }, { get: () => chain, apply: (_fn, _this, args) => (args[0] && typeof args[0] === 'object' && !Array.isArray(args[0])) ? Object.assign(chain, {}) : chain });
@@ -35,7 +36,7 @@ export async function loadCore() {
     '@deepseek-ai/schemastery': { default: z },
     'zod': { z },
     '@deepseek-ai/dsh-brand': { brandString: value => value },
-    '@deepseek-ai/dsh-sandbox': { ESCALATION_TARGETS: [], approveEscalation: () => { throw Error('approval not configured in test'); }, validateEscalationArgs: () => [] },
+    '@deepseek-ai/dsh-sandbox': { ESCALATION_TARGETS: ['workspace-write', 'danger-full-access'], approveEscalation: () => { throw Error('approval not configured in test'); }, validateEscalationArgs: () => [] },
     '@deepseek-ai/dsh-subagent': { assertSubagentMaxDepth: () => {}, delegationDepthOf: () => 0, parentAgentOptionsForDelegation: parent => parent.options }
   };
   const paths = {
@@ -51,7 +52,8 @@ export async function loadCore() {
       return mod;
     }
     const filename = paths[specifier] ?? specifier.replace(/^\.\//, '');
-    const url = new URL(`./fixtures/${filename}`, import.meta.url);
+    const subdir = version === '0.2.2-rc.2' && filename !== 'default-model.js' ? 'rc2/' : '';
+    const url = new URL(`./fixtures/${subdir}${filename}`, import.meta.url);
     const source = await fs.readFile(url, 'utf8');
     const mod = new vm.SourceTextModule(source, { context, identifier: fileURLToPath(url) });
     modules.set(specifier, mod);

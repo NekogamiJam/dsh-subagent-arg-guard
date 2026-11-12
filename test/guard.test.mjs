@@ -3,12 +3,14 @@ import assert from 'node:assert/strict';
 import { loadCore } from './core-loader.mjs';
 import { createGuard, captureCurrentPipeline, MODEL_FIELDS, supportedTool, validateKnownArguments, supportedParameters } from '../lib/guard.js';
 
-import { apply as applyPlugin } from '../lib/index.js';
+import { loadEntry } from './entry-loader.mjs';
 const core = await loadCore();
 // Synthetic Windows path (including a space): passed through only, never accessed on disk.
-const base = { description: 'Check delegated task', prompt: 'Keep exact task\nwith unicode 中文.', cwd: 'C:\\work space' };
+export const base = { description: 'Check delegated task', prompt: 'Keep exact task\nwith unicode 中文.', cwd: 'C:\\work space' };
 
-async function environment(options = {}) {
+export async function environment(options = {}) {
+  const api = options.core ?? core;
+  const version = options.version ?? '0.2.2-rc.1';
   const handlers = new Map();
   const registry = new Map();
   const stats = { pre: [], post: [], results: [], repairs: [], starts: [], logs: [], preflight: [] };
@@ -23,7 +25,7 @@ async function environment(options = {}) {
     on(name, fn) { const array = handlers.get(name) ?? []; array.push(fn); handlers.set(name, array); },
     effect(fn) { return fn(); },
     inject(_needs, fn) { return fn(ctx); },
-    get(name) { return name === 'llm' ? { async resolveCallConfig(route, signal) { stats.preflight.push(route); signal.throwIfAborted(); if (options.preflightError) throw options.preflightError; } } : undefined; },
+    get(name) { if (options.services && Object.hasOwn(options.services, name)) return options.services[name]; return name === 'llm' ? { async resolveCallConfig(route, signal) { stats.preflight.push(route); signal.throwIfAborted(); if (options.preflightError) throw options.preflightError; } } : undefined; },
     sessionProjections: { async register() { return { stateOf: () => options.policy === null ? null : (options.policy ?? [{ provider: 'allowed', model: 'valid' }]) }; } },
     systemPrompt: { section() {}, context() {}, getSectionOrder() { return 0; }, getContextOrder() { return 0; } },
     events: { dispatch(_kind, [_target, name]) { return handlers.get(name) ?? []; } },
@@ -37,6 +39,7 @@ async function environment(options = {}) {
       register(def) { registry.set(def.name, def); return () => registry.delete(def.name); },
       executable(name, _agent, set) { return set ? set.view(_agent).get(name) : registry.get(name); },
       get(name) { return registry.get(name); },
+      schemas() { return [...registry.values()].map(def => api.tools.projectToolSchema(def)); },
       selectExecutor() { if (!selected) throw Error('executor unavailable'); return selected; },
       checkGuards(exec) { return options.guard?.(exec); }
     },
@@ -47,15 +50,16 @@ async function environment(options = {}) {
         stats.starts.push(spec);
         if (options.startError) throw options.startError;
         if (options.onStart) await options.onStart(spec, controller);
-        return { childId: 'child-1' };
+        return version === '0.2.2-rc.1' ? { childId: 'child-1' } : { name: spec.name ?? 'agent-1' };
       }
     }
   };
+  parent.ctx = ctx;
   ctx.on('tools/pre-execute', async (exec, next) => { stats.pre.push(exec); return options.pre ? options.pre(exec, next, stats) : next(); });
   ctx.on('tools/post-execute', async (exec, result, next) => { stats.post.push({ exec, result }); return options.post ? options.post(exec, result, next) : next(); });
   ctx.on('tools/result', (exec, result) => stats.results.push({ exec, result }));
-  await core.subagent.apply(ctx, { provider: 'spawn', toolName: options.fork ? 'subagent_fork' : 'subagent', modelSelection: options.modelSelection !== false, maxDepth: 'provider-managed', ...(options.nativeDefaults ? { agentOptions: options.nativeDefaults } : {}) });
-  selected = options.ptc ? new core.ptc.PtcExecutor(ctx, { maxParallelSubCalls: 10 }) : new core.native.NativeToolExecutor(ctx);
+  await api.subagent.apply(ctx, { provider: 'spawn', toolName: options.fork ? 'subagent_fork' : 'subagent', modelSelection: options.modelSelection !== false, maxDepth: 'provider-managed', ...(options.nativeDefaults ? { agentOptions: options.nativeDefaults } : {}) });
+  selected = options.ptc ? new api.ptc.PtcExecutor(ctx, { maxParallelSubCalls: 10, maxSubCallsPerMinute: 1 }) : new api.native.NativeToolExecutor(ctx);
   if (options.defaultsPlugin) {
     // Faithful installed plugin contract: explicit agentOptions win; fork skipped by default.
     const start = ctx.subagents.startActivation.bind(ctx.subagents);
@@ -69,18 +73,20 @@ async function environment(options = {}) {
     applyToForkChildren: !!options.applyPoolToFork
   });
   const guard = createGuard({
-    pipelineFor: exec => captureCurrentPipeline(ctx, exec),
+    pipelineFor: exec => captureCurrentPipeline(ctx, exec, version),
     validate: validateKnownArguments,
+    version,
+    ...options.guardConfig,
     report: event => { stats.repairs.push(event); if (options.report) options.report(event); }
   });
-  if (options.actualEntry) applyPlugin(ctx);
+  if (options.actualEntry) await (await loadEntry({ version: options.detectedVersion ?? version, fail: !!options.versionFailure })).apply(ctx, options.entryConfig ?? {});
   else ctx.on('tools/execute', guard);
   if (options.dispatchHook) ctx.on('tools/execute', (exec, next) => options.dispatchHook(exec, next, env));
   const name = options.fork ? 'subagent_fork' : 'subagent';
   const initialDef = registry.get(name);
-  assert.equal(supportedTool(initialDef), true, JSON.stringify({ parameters: initialDef.parameters, output: initialDef.output.schema }));
+  assert.equal(supportedTool(initialDef, version), true, JSON.stringify({ parameters: initialDef.parameters, output: initialDef.output.schema }));
   const env = {
-    ctx, stats, parent, controller, registry, initialDef,
+    ctx, stats, parent, controller, registry, initialDef, version, api,
     get executor() { return selected; },
     set executor(value) { selected = value; },
     async invoke(args, extra = {}) {
@@ -94,9 +100,9 @@ async function environment(options = {}) {
   return env;
 }
 
-function assertRepair(e, result, expected = undefined) {
+export function assertRepair(e, result, expected = undefined) {
   assert.equal(result.isError, false, result.error?.message);
-  assert.equal(result.value.subagentId, 'child-1');
+  assert.equal(e.version === '0.2.2-rc.1' ? result.value.subagentId : result.value.name, e.version === '0.2.2-rc.1' ? 'child-1' : 'agent-1');
   assert.equal(e.stats.starts.length, 1);
   assert.equal(e.stats.pre.length, 2);
   assert.equal(e.stats.post.length, 1);
@@ -113,9 +119,10 @@ function assertRepair(e, result, expected = undefined) {
   assert.equal(repaired.rootCallId, original.rootCallId);
   assert.equal(repaired.signal, original.signal);
   assert.equal(e.stats.post[0].exec, original); // Original request + corrected outcome audit semantics.
-  assert.equal(e.stats.starts[0].request.prompt[0].text, base.prompt);
-  assert.equal(e.stats.starts[0].request.cwd, base.cwd);
-  if (expected) assert.deepEqual({ ...e.stats.starts[0].request.agentOptions }, expected);
+  const request = e.version === '0.2.2-rc.1' ? e.stats.starts[0].request : e.stats.starts[0];
+  assert.equal(request.prompt[0].text, base.prompt);
+  assert.equal(request.cwd, base.cwd);
+  if (expected) assert.deepEqual({ ...request.agentOptions }, expected);
 }
 
 for (const [label, fields] of [
@@ -303,7 +310,7 @@ test('diagnostic failure cannot change a successful repair', async () => {
   assertRepair(e, await e.invoke({ ...base, provider: '', model: '' }));
 });
 
-test('actual zero-dependency plugin entry works in vanilla host', async () => {
+test('actual host-integrated plugin entry works in vanilla host', async () => {
   const e = await environment({ actualEntry: true });
   const result = await e.invoke({ ...base, provider: '', model: '' });
   assert.equal(result.isError, false); assert.equal(e.stats.starts.length, 1);
