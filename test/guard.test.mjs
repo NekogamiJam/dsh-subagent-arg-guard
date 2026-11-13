@@ -20,6 +20,7 @@ export async function environment(options = {}) {
   } };
   let selected;
   const provider = { name: 'spawn', inheritsParentContext: !!options.fork, capabilities: { agentOptions: true, depthLimit: true } };
+  const guards = [];
   const ctx = {
     logger: { info() {}, warn() {} },
     on(name, fn) { const array = handlers.get(name) ?? []; array.push(fn); handlers.set(name, array); },
@@ -41,7 +42,11 @@ export async function environment(options = {}) {
       get(name) { return registry.get(name); },
       schemas() { return [...registry.values()].map(def => api.tools.projectToolSchema(def)); },
       selectExecutor() { if (!selected) throw Error('executor unavailable'); return selected; },
-      checkGuards(exec) { return options.guard?.(exec); }
+      guard(fn) { guards.push(fn); return () => guards.splice(guards.indexOf(fn), 1); },
+      checkGuards(exec) {
+        for (const guard of guards) { const denial = guard(exec); if (denial !== undefined) return denial; }
+        return options.guard?.(exec);
+      }
     },
     subagents: {
       getProvider(name) { return name === provider.name ? provider : undefined; },

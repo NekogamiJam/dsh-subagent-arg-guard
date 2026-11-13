@@ -8,12 +8,13 @@ import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
 import * as guard from '../lib/guard.js';
 import * as runtime from '../lib/runtime.js';
+import * as access from '../lib/access.js';
 const requireHost = createRequire(process.argv[2]);
 const host = await import(pathToFileURL(requireHost.resolve('@deepseek-ai/dsh-app-boot')).href);
 const z = requireHost('@deepseek-ai/schemastery');
 const context = vm.createContext({ console });
 const externals = {
-  '@deepseek-ai/schemastery': { default: z }, './guard.js': guard,
+  '@deepseek-ai/schemastery': { default: z }, './guard.js': guard, './access.js': access,
   './runtime.js': { ...runtime, detectRuntimeVersion: () => runtime.detectRuntimeVersion(async () => host) }
 };
 const entry = new vm.SourceTextModule(await fs.readFile(new URL('../lib/index.js', import.meta.url), 'utf8'), { context });
@@ -29,7 +30,8 @@ assert.equal(runtime.readFlag(resolved.repairForks), true);
 for (const field of Object.values(entry.namespace.Config.dict)) assert.equal(field.meta.volatile, true);
 const detected = await runtime.detectRuntimeVersion(async () => host);
 assert.equal(detected.supported, true);
-let installed = false;
-await entry.namespace.apply({ logger: { info() {}, warn() {} }, on(event) { assert.equal(event, 'tools/execute'); installed = true; } }, resolved);
+let installed = false, guardRegistered = false;
+await entry.namespace.apply({ tools: { guard(fn) { assert.equal(typeof fn, 'function'); guardRegistered = true; } }, logger: { info() {}, warn() {} }, on(event) { assert.equal(event, 'tools/execute'); installed = true; } }, resolved);
+assert.equal(guardRegistered, true);
 assert.equal(installed, true);
 console.log(JSON.stringify({ runtime: detected.version, nativeConfigAccepted: true, defaultSwitches: Object.fromEntries(Object.entries(resolved).map(([key, value]) => [key, runtime.readFlag(value)])), handlerRegistered: true, profileWrites: 0, agentsStarted: 0 }));

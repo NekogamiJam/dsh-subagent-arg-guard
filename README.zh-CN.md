@@ -2,7 +2,7 @@
 
 独立的子代理参数补救插件。只在当前原生 `subagent` / `subagent_fork` 返回特定选模参数错误时，删除整个选模参数组并重试一次，恢复该调用原本的默认行为。
 
-**版本：0.2.0。包含 DSH 0.2.2-rc.1 / 0.2.2-rc.2 的对应逻辑，覆盖 Native / PTC；127 项隔离测试与 13 个夹具哈希校验通过。rc.1 开发包已完成本地安装、空选模参数真实冒烟及设置页/保存提示确认。正式版运行逻辑与已验收 local.2 相同；rc.2 没有实机验收。**
+**当前版本：0.3.0。包含 DSH 0.2.2-rc.1 / 0.2.2-rc.2 的对应逻辑，覆盖 Native / PTC；163 项隔离测试、13 个夹具哈希与 5 个生产文件语法检查通过。Windows rc.1 已安装开发包并确认新设置页可见、空模型字段补救成功，关闭 fork 后真实调用被拒绝且普通 subagent 仍可用；rc.2 仍无实机验收。**
 
 ## 验证范围
 
@@ -32,13 +32,22 @@
 
 - rc.1：保留 `subagentId` 输出、无 presentationMeta 的原工具契约与该版本精确错误后缀。
 - rc.2：适配 `name` 输出、presentationMeta、effort 必须与 provider/model 同时提供的新错误；保留用户的 name，后端请求仍由原生工具构造。
-- 运行时读取宿主版本，精确选择对应分支。其他版本、API 缺失/异常或契约不符都不补救，原工具照常运行；没有用户可调的“强制版本”或版本豁免开关。
+- 运行时读取宿主版本，精确选择对应分支。其他版本或 API 缺失/异常时插件整体停用，不提供补救或工具禁用；契约不符时停止补救，不影响已注册的工具访问规则。没有用户可调的“强制版本”或版本豁免开关。
 
-设置入口为 **侧栏「插件」→「已安装」→ 本插件 → `dsh-subagent-arg-guard` 配置行**。使用宿主提供的原生 Config 表单/写入动作，不扫描 namespace、不手写 profile，也不额外占用主「设置」导航。
+设置入口为 **「更多 → 设置 → 子代理工具与参数补救」**，不再注册原「插件 → 已安装」配置行的自定义页面。通过宿主 `settings.section` 与 `configForms` 使用固定 Config entry ID `dsh-subagent-arg-guard`；不扫描 namespace、不手写 profile、不建立第二份配置存储。升级沿用原四项值，新增两项缺省为 true。
 
-四个短开关默认均开启：启用参数补救；补救 Session 不允许的显式路由；补救 fork；记录脱敏补救日志。点击单项即带当前 revision 写入；宿主不可写时禁用控件，拒绝/异常不显示成功。关闭 fork 补救不等于改变 fork 模型；关闭路由拒绝补救后，空值/类型/半 pair 仍可补救。
+六个短开关默认均开启：
 
-配置字段为原生 volatile，勾选后自动保存；宿主确认保存成功后，后续子代理工具调用会读取新设置，**不需要手动刷新或重启 DSH**，也不会重启或改变已创建的子代理。保存期间显示“正在保存”；失败时不宣称生效，提示重试或返回插件列表后重新进入本页。设置页已在 rc.1 实机显示，保存交互由用户确认；重启后持久化和完整设置生效矩阵仍待验收。
+- `allowSubagent`：允许调用 `subagent` 工具。
+- `allowSubagentFork`：允许调用 `subagent_fork` 工具。
+- `enabled`：启用参数补救，**不影响上述工具调用开关**。
+- `repairDisallowedRoutes`：补救 Session 不允许的显式路由；关闭后空值/类型/半 pair 仍可补救。
+- `repairForks`：补救 fork 参数；关闭不等于禁用 fork，也不改变 fork 默认模型。
+- `logRepairs`：记录脱敏补救日志。
+
+工具开关使用原生 `tools.guard` 在 prepare 阶段拒绝，并在 dispatch 入口复检；对 Native 和 PTC 内的这两个工具调用都有效。关闭时不更改工具定义，**可能仍显示在模型已收到的工具列表中，但新调用会明确报已禁用**。不取消已获准并开始执行的调用（包括仍在原生预检中等待的调用），不停止已有子代理；不拦截第三方插件通过 `subagent_role` 等其他工具或直接服务创建子代理。停用/卸载整个插件也会解除这层限制，不是全局子代理沙箱。
+
+配置为原生 volatile：点击单项即带当前 revision 自动写入；宿主不可写时禁用控件，拒绝/异常不显示成功。宿主确认保存后，后续调用读取新设置，**不需要手动刷新或重启 DSH**。保存期间显示“正在保存”；失败提示重试或返回设置后重新进入本页。2026-11-13，用户已确认新设置页可见，并在页面关闭 `allowSubagentFork` 后验证真实 fork 调用被拒绝、普通 subagent 仍成功；尚未验证重启持久化或两个开关的完整实机矩阵。
 
 ## 精确补救范围
 
@@ -102,18 +111,20 @@ npm run check
 
 历史上旧版 **0.1.0** 在 Windows DSH 0.2.2-rc.1 中做过独立真实冒烟：安装/启用后空三字段成功创建子代理并返回 `ARG_GUARD_SMOKE_OK`，同时启用了默认模型插件 2.2.0。**该旧版证据不能代替 0.2.0 或 rc.2 的验收。** 另于 2026-11-12 安装 local.1 后，空三字段真实调用返回 `ARG_GUARD_LOCAL_020_SMOKE_OK`，用户确认设置页显示且点击后返回保存成功；完整重启持久化与设置生效矩阵尚未完成。local.2 修正后的保存提示也已在 rc.1 确认显示；0.2.0 只更新版本号与发布文档，不改运行逻辑。
 
+本轮 **0.3.0-local.1** 在 rc.1 安装后，空模型三字段真实调用返回 `ARG_GUARD_030_SMOKE_OK`；用户确认新的通用设置页显示，并在页面关闭 fork 后得到明确的创建前拒绝。同时普通 subagent 对照调用返回 `SUBAGENT_STILL_ENABLED_OK`，其调用使用空模型三字段并经补救成功，说明 fork 禁用没有影响普通工具或其参数补救。本次没有打开用户关闭的开关，不据此宣称重启持久化、关闭普通工具或完整 Native/PTC 实机矩阵已经通过。0.3.0 与该开发包的生产代码一致。详见 [真实调用记录与未验证项](TESTING.zh-CN.md#实机证据与边界)。
+
 覆盖原版省略继承、合法显式模型、原生默认选项、实际默认模型池轮转、fork 默认与 opt-in、Native/PTC 准入、取消竞争、策略拒绝、await 中替换定义/执行器、一次补救上限、单次日志/后处理和误匹配防护。详见 [测试报告](TESTING.zh-CN.md)。
 
 ## 交付与安装
 
-正式版本 0.2.0 从固定 GitHub Release 下载。推荐 DSH rc.1；rc.2 仅离线适配且不承诺实机可用性。旧版 Release 保留，不覆盖旧资产。
+正式版本 **0.3.0** 与已在 Windows rc.1 安装验收的 **0.3.0-local.1** 使用相同的 5 个生产文件，只更新正式版本号与发布文档。新版包含通用设置入口与工具开关；旧版 Release 保留，不覆盖旧资产。推荐 DSH rc.1；rc.2 仅离线适配且不承诺实机可用性。
 
 ### 快速从 GitHub 安装
 
 本插件不需要先发布到 npm 或进入插件市场。推荐使用固定版本 Release 的 `.tgz` 下载直链：
 
 ```text
-https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.2.0/dsh-subagent-arg-guard-0.2.0.tgz
+https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.3.0/dsh-subagent-arg-guard-0.3.0.tgz
 ```
 
 在 DSH 对话中，请模型先用 `plugin_manager` 的 `list_bundles` 检查，再以此 URL 为 `target` 执行 `install_bundle`（`enabled: true`），最后复查版本、安装/启用状态及是否需要重启。版本不匹配时停止，不授予版本豁免；不要从 npm 按同名包安装。
@@ -121,10 +132,10 @@ https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.2.0/d
 也可以先完全退出使用该 profile 的 DSH，再通过 CLI 安装，然后重新打开并核对启用状态（以下 `desktop` 应替换为你实际使用的 profile）：
 
 ```sh
-dsh plugin --profile desktop add "https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.2.0/dsh-subagent-arg-guard-0.2.0.tgz"
+dsh plugin --profile desktop add "https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.3.0/dsh-subagent-arg-guard-0.3.0.tgz"
 ```
 
-[首页的完整快速安装步骤](README.md#快速安装) 包含可直接粘贴给模型的安装请求、Windows 未加入 PATH 时的启动器写法、浏览器下载与校验、本地绝对路径安装和关闭/卸载方式。“仅 GitHub”指本插件的来源；安装器处理现有 profile 的其他依赖时仍可能访问其 registry。
+[首页的已发布版本安装步骤](README.md) 包含可直接粘贴给模型的安装请求、Windows 未加入 PATH 时的启动器写法、浏览器下载与校验、本地绝对路径安装和关闭/卸载方式。“仅 GitHub”指本插件的来源；安装器处理现有 profile 的其他依赖时仍可能访问其 registry。
 
 ### 发布与验证边界
 

@@ -1,24 +1,26 @@
 {
   "name": "dsh-subagent-arg-guard",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Restore normal subagent defaults after narrowly identified pre-creation model-argument errors",
   "type": "module",
   "main": "lib/index.js",
   "exports": { ".": "./lib/index.js", "./guard": "./lib/guard.js", "./client": "./lib/client.js" },
   "files": ["lib", "cordis.patch.yml", "README.zh-CN.md", "TESTING.zh-CN.md", "LICENSE"],
-  "scripts": { "test": "node --experimental-vm-modules test/all.test.mjs", "check": "node --check lib/guard.js && node --check lib/index.js && node --check lib/runtime.js && node --check lib/client.js" },
+  "scripts": { "test": "node --experimental-vm-modules test/all.test.mjs", "check": "node --check lib/guard.js && node --check lib/index.js && node --check lib/runtime.js && node --check lib/client.js && node --check lib/access.js" },
   "engines": { "node": ">=22", "dsh": "0.2.2-rc.1 || 0.2.2-rc.2" },
   "dsh": {
     "bundle": { "patch": "./cordis.patch.yml" },
-    "client": { "platform": "web", "inject": ["@deepseek-ai/dsh-client-ui-slots"] }
+    "client": { "platform": "web", "inject": ["@deepseek-ai/dsh-client-ui-slots", "@deepseek-ai/dsh-client-ui-settings"] }
   },
   "dependencies": { "@deepseek-ai/schemastery": "3.18.4" },
   "peerDependencies": {
     "@deepseek-ai/dsh-app-boot": "0.2.2-rc.1 || 0.2.2-rc.2",
+    "@deepseek-ai/dsh-client-ui-settings": "0.2.2-rc.1 || 0.2.2-rc.2",
     "@deepseek-ai/dsh-client-ui-slots": "0.2.2-rc.1 || 0.2.2-rc.2"
   },
   "peerDependenciesMeta": {
     "@deepseek-ai/dsh-app-boot": { "optional": true },
+    "@deepseek-ai/dsh-client-ui-settings": { "optional": true },
     "@deepseek-ai/dsh-client-ui-slots": { "optional": true }
   },
   "license": "MIT"

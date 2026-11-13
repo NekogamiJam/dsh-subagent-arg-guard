@@ -35,10 +35,10 @@ test('runtime load failure / missing API / thrown API fails closed', async () =>
   assert.equal((await e.invoke({ ...base, provider: '' })).isError, true);
   assert.equal(e.stats.starts.length, 0);
 });
-test('native Config exposes only four default-on volatile boolean switches', async () => {
+test('native Config exposes six default-on volatile boolean switches', async () => {
   const entry = await loadEntry();
   assert.equal(entry.Config[Symbol.for('schemastery')], true);
-  assert.deepEqual(Object.keys(entry.Config.dict), ['enabled', 'repairDisallowedRoutes', 'repairForks', 'logRepairs']);
+  assert.deepEqual(Object.keys(entry.Config.dict), ['allowSubagent', 'allowSubagentFork', 'enabled', 'repairDisallowedRoutes', 'repairForks', 'logRepairs']);
   for (const field of Object.values(entry.Config.dict)) {
     assert.equal(field.type, 'boolean'); assert.equal(field.meta.default, true); assert.equal(field.meta.volatile, true);
   }
