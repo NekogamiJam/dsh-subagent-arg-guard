@@ -49,7 +49,7 @@ test('client registers only a settings section and binds its exact shared Config
 });
 test('client has six concise switches and disables unavailable/read-only form', () => {
   const c = loadClient();
-  assert.equal(c.render({ view: 'summary' }), '选模参数错误时恢复默认路径；自动识别 rc.1 / rc.2。');
+  assert.equal(c.render({ view: 'summary' }), '选模参数错误时恢复默认路径；自动识别 rc.1 / rc.2 / rc.3。');
   for (const props of [{ view: 'page' }, { view: 'page', form: { state: { status: 'ready', writable: false } } }, { view: 'page', form: { state: { status: 'unavailable', writable: true } } }]) {
     const inputs = nodes(c.render(props), n => n.type === 'input');
     assert.equal(inputs.length, 6); assert.equal(inputs.every(n => n.props.disabled), true);

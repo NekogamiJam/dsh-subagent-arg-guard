@@ -116,7 +116,7 @@ test('version-specific output contracts cannot be interchanged', async () => {
   const one = await environment(); const two = await rc2();
   assert.equal(supportedTool(one.initialDef, '0.2.2-rc.2'), false);
   assert.equal(supportedTool(two.initialDef, '0.2.2-rc.1'), false);
-  assert.equal(supportedTool(two.initialDef, '0.2.2-rc.3'), false);
+  assert.equal(supportedTool(two.initialDef, '0.2.2-rc.3'), true);
 });
 test('rc2 cancellation during retry pre-execute keeps no child', async () => {
   const e = await rc2({ pre: async (_exec, next, stats) => { if (stats.pre.length === 2) e.controller.abort(); return next(); } });

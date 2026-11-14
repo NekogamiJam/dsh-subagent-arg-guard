@@ -5,7 +5,7 @@ import { loadCore } from './core-loader.mjs';
 import { loadEntry } from './entry-loader.mjs';
 import { environment, base } from './guard.test.mjs';
 
-for (const version of ['0.2.2-rc.1', '0.2.2-rc.2']) {
+for (const version of ['0.2.2-rc.1', '0.2.2-rc.2', '0.2.2-rc.3']) {
   test(`runtime detection selects exact ${version}`, async () => {
     assert.deepEqual(await detectRuntimeVersion(async () => ({ getDshRuntimeVersion: () => version })), { version, supported: true, reason: 'supported' });
   });
@@ -18,7 +18,7 @@ for (const version of ['0.2.2-rc.1', '0.2.2-rc.2']) {
     assert.equal(e.stats.pre.length, 2);
   });
 }
-for (const version of ['0.2.2', '0.2.2-rc.3', '0.2.1', 'v0.2.2-rc.1', ' 0.2.2-rc.1 ', '', null]) {
+for (const version of ['0.2.2', '0.2.2-rc.4', '0.2.1', 'v0.2.2-rc.1', ' 0.2.2-rc.1 ', '', null]) {
   test(`unknown/untrusted runtime is inactive: ${JSON.stringify(version)}`, async () => {
     const e = await environment({ actualEntry: true, detectedVersion: version === null ? '' : version });
     const result = await e.invoke({ ...base, provider: '' });

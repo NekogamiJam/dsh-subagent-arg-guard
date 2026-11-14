@@ -2,9 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { environment, base } from './guard.test.mjs';
 import { loadCore } from './core-loader.mjs';
-const core = await loadCore('0.2.2-rc.2');
+for (const version of ['0.2.2-rc.2', '0.2.2-rc.3']) {
+const core = await loadCore(version);
 
-for (const exceed of [false, true]) test(`rc2 real PTC binding counts repaired call once; excess=${exceed}`, async () => {
+for (const exceed of [false, true]) test(`${version} real PTC binding counts repaired call once; excess=${exceed}`, async () => {
   let first;
   const runtime = {
     language: 'typescript', retainsState: false,
@@ -21,7 +22,7 @@ for (const exceed of [false, true]) test(`rc2 real PTC binding counts repaired c
       return { logs: [], value: first };
     }
   };
-  const e = await environment({ core, version: '0.2.2-rc.2', ptc: true, services: {
+  const e = await environment({ core, version, ptc: true, services: {
     ptcRuntime: runtime, workingDirectory: { ensure: async () => base.cwd }
   } });
   const batch = await e.executor.execute({ calls: [{ id: 'outer', name: 'run_code', arguments: JSON.stringify({ code: 'host-substrate-test', description: 'Exercise repaired subagent budget' }) }], agent: e.parent, signal: e.controller.signal, log: { turn: 1, step: 1 } });
@@ -41,3 +42,4 @@ for (const exceed of [false, true]) test(`rc2 real PTC binding counts repaired c
     assert.equal(result.value.result.name, 'agent-1');
   }
 });
+}

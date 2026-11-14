@@ -29,6 +29,12 @@ Copyright (c) 2026 LaoDing。MIT 许可原文见 [LICENSE.default-model](LICENSE
 
 原始 SHA-256 见 [rc2/sha256.json](rc2/sha256.json)。版权仍为 Copyright (c) 2026 DeepSeek，原包 MIT 许可与 [LICENSE.DSH](LICENSE.DSH) 一致。rc.2 没有复制默认模型插件夹具，不能据此认定默认模型插件 2.2.0 兼容 rc.2。
 
+## DSH 0.2.2-rc.3
+
+[rc3/provenance.json](rc3/provenance.json) records the official npm package versions, URLs and registry integrity. Tarball SHA-512 was verified against registry metadata before six compiled distribution files were copied byte-for-byte into [rc3/](rc3/); no install scripts were run and the host was not upgraded. The six selected files are byte-identical to the corresponding rc.2 files, but the separate rc.3 copies ensure the tests load the official rc.3 package artifacts directly.
+
+Original SHA-256 values are recorded in [rc3/sha256.json](rc3/sha256.json). Copyright remains Copyright (c) 2026 DeepSeek; the MIT notice is identical to [LICENSE.DSH](LICENSE.DSH). No default-model plugin fixture was copied, so this does not assert that plugin's compatibility with rc.3.
+
 ## 完整性
 
 [sha256.json](sha256.json) 记录所有源码夹具的原始 SHA-256。从项目根目录运行 `node test/verify-fixtures.mjs` 验证。

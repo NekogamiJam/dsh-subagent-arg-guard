@@ -2,9 +2,9 @@ import vm from 'node:vm';
 import fs from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
-// Unmodified official rc.1 / rc.2 code; only external host/services are isolated.
+// Unmodified official rc.1 / rc.2 / rc.3 code; only external host/services are isolated.
 export async function loadCore(version = '0.2.2-rc.1') {
-  if (!['0.2.2-rc.1', '0.2.2-rc.2'].includes(version)) throw new Error('unknown fixture version');
+  if (!['0.2.2-rc.1', '0.2.2-rc.2', '0.2.2-rc.3'].includes(version)) throw new Error('unknown fixture version');
   const context = vm.createContext({ console, AbortController, AbortSignal, setTimeout, clearTimeout, structuredClone, Symbol, Error });
   const modules = new Map();
   const chain = new Proxy(function(value) { return value; }, { get: () => chain, apply: (_fn, _this, args) => (args[0] && typeof args[0] === 'object' && !Array.isArray(args[0])) ? Object.assign(chain, {}) : chain });
@@ -52,7 +52,7 @@ export async function loadCore(version = '0.2.2-rc.1') {
       return mod;
     }
     const filename = paths[specifier] ?? specifier.replace(/^\.\//, '');
-    const subdir = version === '0.2.2-rc.2' && filename !== 'default-model.js' ? 'rc2/' : '';
+    const subdir = filename === 'default-model.js' || version === '0.2.2-rc.1' ? '' : version === '0.2.2-rc.2' ? 'rc2/' : 'rc3/';
     const url = new URL(`./fixtures/${subdir}${filename}`, import.meta.url);
     const source = await fs.readFile(url, 'utf8');
     const mod = new vm.SourceTextModule(source, { context, identifier: fileURLToPath(url) });

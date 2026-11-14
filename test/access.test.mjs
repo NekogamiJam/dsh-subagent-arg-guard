@@ -4,7 +4,7 @@ import { environment, base } from './guard.test.mjs';
 import { loadCore } from './core-loader.mjs';
 import { createToolAccessPolicy } from '../lib/access.js';
 
-for (const version of ['0.2.2-rc.1', '0.2.2-rc.2']) {
+for (const version of ['0.2.2-rc.1', '0.2.2-rc.2', '0.2.2-rc.3']) {
   const core = await loadCore(version);
   for (const fork of [false, true]) {
     const field = fork ? 'allowSubagentFork' : 'allowSubagent';

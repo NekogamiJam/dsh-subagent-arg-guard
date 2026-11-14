@@ -1,4 +1,5 @@
 import './guard.test.mjs';
+import './rc3.test.mjs';
 import './dual-version.test.mjs';
 import './ptc-runtime.test.mjs';
 import './runtime.test.mjs';

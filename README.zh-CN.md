@@ -2,11 +2,11 @@
 
 独立的子代理参数补救插件。只在当前原生 `subagent` / `subagent_fork` 返回特定选模参数错误时，删除整个选模参数组并重试一次，恢复该调用原本的默认行为。
 
-**当前版本：0.3.0。包含 DSH 0.2.2-rc.1 / 0.2.2-rc.2 的对应逻辑，覆盖 Native / PTC；163 项隔离测试、13 个夹具哈希与 5 个生产文件语法检查通过。Windows rc.1 已安装开发包并确认新设置页可见、空模型字段补救成功，关闭 fork 后真实调用被拒绝且普通 subagent 仍可用；rc.2 仍无实机验收。**
+**源码版本：0.3.1；当前 profile 仍运行此前安装的 0.3.1-local.1 构建；GitHub Release 已同步为正式 0.3.1。新增 rc.3 精确版本分支及官方发行代码隔离测试：193 项测试、19 个第三方夹具 SHA-256 与 5 个生产文件语法检查通过。当前 DSH 0.2.2-rc.3 已完成一次最小真实 `subagent` 冒烟，返回 `RC3_LIVE_SMOKE_OK`；尚未完成完整实机矩阵。**
 
 ## 验证范围
 
-我会继续使用 **DSH 0.2.2-rc.1**，**不会为 0.2.2-rc.2 升级本机，也不会对 rc.2 进行实机适配或验收**。现有 rc.2 分支和隔离回归测试保留，但仅属于基于官方发行代码的离线适配，**不承诺 rc.2 的实机可用性**；manifest 中列出该版本不等于已经完成实机验证。
+本轮当前 DSH 已为 **0.2.2-rc.3**。已在真实宿主完成一次不使用工具、不改文件的最小 `subagent` 调用，返回 `RC3_LIVE_SMOKE_OK`，用于确认版本检测、插件入口和参数补救链路可启动；这不等于完整的 Native/PTC、fork、重启持久化或真实模型 API 矩阵。rc.1/rc.2/rc.3 的主要逻辑仍由精确版本分支选择，rc.3 复用已核对与 rc.2 字节一致的相关运行模块。
 
 
 ## 解决什么
@@ -32,7 +32,8 @@
 
 - rc.1：保留 `subagentId` 输出、无 presentationMeta 的原工具契约与该版本精确错误后缀。
 - rc.2：适配 `name` 输出、presentationMeta、effort 必须与 provider/model 同时提供的新错误；保留用户的 name，后端请求仍由原生工具构造。
-- 运行时读取宿主版本，精确选择对应分支。其他版本或 API 缺失/异常时插件整体停用，不提供补救或工具禁用；契约不符时停止补救，不影响已注册的工具访问规则。没有用户可调的“强制版本”或版本豁免开关。
+- rc.3：本轮针对官方 npm 0.2.2-rc.3 发行夹具单独测试；相关工具、参数校验、执行器和设置源逻辑与 rc.2 字节一致。它复用 rc.2 适配分支，不增加猜测性行为；当前 rc.3 宿主已完成一次最小真实冒烟，但尚未完成完整宿主矩阵。
+- 运行时读取宿主版本，精确选择 rc.1、rc.2 或 rc.3 对应分支（rc.3 与 rc.2 共用经确认相同的核心合同）。其他版本或 API 缺失/异常时插件整体停用，不提供补救或工具禁用；契约不符时停止补救，不影响已注册的工具访问规则。没有用户可调的“强制版本”或版本豁免开关。
 
 设置入口为 **「更多 → 设置 → 子代理工具与参数补救」**，不再注册原「插件 → 已安装」配置行的自定义页面。通过宿主 `settings.section` 与 `configForms` 使用固定 Config entry ID `dsh-subagent-arg-guard`；不扫描 namespace、不手写 profile、不建立第二份配置存储。升级沿用原四项值，新增两项缺省为 true。
 
@@ -55,7 +56,7 @@
 
 - 当前原生工具的 `child LLM \`provider/model/reasoning_effort\` must be non-empty` 错误，并核对实际字段确为空字符串/空白字符串。
 - 当前原生工具的 provider/model 必须成对提供错误，并核对实际确实缺一半。
-- rc.2 的 `reasoning_effort` 未同时配齐 provider/model 的精确错误，并核对确实缺字段。
+- rc.2/rc.3 的 `reasoning_effort` 未同时配齐 provider/model 的精确错误，并核对确实缺字段。
 - 当前原生工具的 Session 路由不允许错误，包括没有已记录选模策略时各版本的确切后缀；完整显式路由必须与错误中的路由一致。
 - `ToolArgsError` / `INVALID_ARGS`，仅当真实 schema 违反项全部属于模型三字段，且移除三字段后其他参数完全合法。
 - 当前官方工具禁用了显式选模、schema 隐藏模型字段，但调用仍额外提供模型字段时的确切拒绝。
@@ -84,7 +85,7 @@ API 鉴权、额度、429、超时、网络错误、模型适配器不存在、�
 
 ## 兼容与信任边界
 
-- `engines.dsh` 精确声明 `0.2.2-rc.1 || 0.2.2-rc.2`；未知版本不特意兼容，不建议绕过版本限制。Node >=22。
+- `engines.dsh` 精确声明 `0.2.2-rc.1 || 0.2.2-rc.2 || 0.2.2-rc.3`；当前工作树的 rc.3 声明不代表已发布安装包支持 rc.3。未知版本不特意兼容，不建议绕过版本限制。Node >=22。
 - 正常 profile resolver 将 app-boot peer import 路由到宿主；不要自行添加 dependency 或打包嵌套 app-boot 副本，否则该 API 可能返回副本版本而非宿主版本。本包没有这种依赖/捆绑。版本 API 不可用时不补救，而非扫描目录或猜版本。
 - 使用当前执行器的 `pipeline.constructor` 构造隔离的 retry 状态，逐次透传原 pipeline 的 resolve/reject 判定；不修改原 pipeline.source。
 - pipeline 的实例字段/阶段方法并不是承诺长期稳定的插件重派发 API。未知执行器、接口变化、schema 增加未审计约束时保守不补救，保留原错误。
@@ -95,7 +96,7 @@ API 鉴权、额度、429、超时、网络错误、模型适配器不存在、�
 
 ## 测试
 
-开发源码包包含安装版本中未经修改的官方工具/Native/PTC/流水线/schema-validator 夹具，以及默认模型插件 2.2.0 的原始实现；附 SHA-256 与第三方许可证。
+开发源码包包含 rc.1 宿主中未经修改的官方 tools/subagent/Native/PTC/流水线/schema-validator 夹具、官方 npm rc.2/rc.3 发行代码夹具，以及默认模型插件 2.2.0 的原始实现；附 SHA-256 与第三方许可证。rc.3 的六个选择模块经哈希核实与 rc.2 字节一致，但仍用独立 rc.3 夹具加载测试。
 
 运行（不安装依赖、不联网）：
 
@@ -109,7 +110,7 @@ npm run check
 
 上述隔离测试使用真实官方工具、参数验证与执行流水线代码；隔离替身包括 Cordis 服务、外部 SDK、session 服务、LLM 预检与 startActivation 后端。**隔离测试本身没有调用真实模型 API、创建真实运行中的子代理、验证 GUI 安装或验证真实账户额度。**
 
-历史上旧版 **0.1.0** 在 Windows DSH 0.2.2-rc.1 中做过独立真实冒烟：安装/启用后空三字段成功创建子代理并返回 `ARG_GUARD_SMOKE_OK`，同时启用了默认模型插件 2.2.0。**该旧版证据不能代替 0.2.0 或 rc.2 的验收。** 另于 2026-11-12 安装 local.1 后，空三字段真实调用返回 `ARG_GUARD_LOCAL_020_SMOKE_OK`，用户确认设置页显示且点击后返回保存成功；完整重启持久化与设置生效矩阵尚未完成。local.2 修正后的保存提示也已在 rc.1 确认显示；0.2.0 只更新版本号与发布文档，不改运行逻辑。
+历史上旧版 **0.1.0** 在 Windows DSH 0.2.2-rc.1 中做过独立真实冒烟：安装/启用后空三字段成功创建子代理并返回 `ARG_GUARD_SMOKE_OK`，同时启用了默认模型插件 2.2.0。**该旧版证据不能代替 0.2.0、rc.2 或 rc.3 的宿主验收。** 另于 2026-11-12 安装 local.1 后，空三字段真实调用返回 `ARG_GUARD_LOCAL_020_SMOKE_OK`，用户确认设置页显示且点击后返回保存成功；完整重启持久化与设置生效矩阵尚未完成。local.2 修正后的保存提示也已在 rc.1 确认显示；0.2.0 只更新版本号与发布文档，不改运行逻辑。
 
 本轮 **0.3.0-local.1** 在 rc.1 安装后，空模型三字段真实调用返回 `ARG_GUARD_030_SMOKE_OK`；用户确认新的通用设置页显示，并在页面关闭 fork 后得到明确的创建前拒绝。同时普通 subagent 对照调用返回 `SUBAGENT_STILL_ENABLED_OK`，其调用使用空模型三字段并经补救成功，说明 fork 禁用没有影响普通工具或其参数补救。本次没有打开用户关闭的开关，不据此宣称重启持久化、关闭普通工具或完整 Native/PTC 实机矩阵已经通过。0.3.0 与该开发包的生产代码一致。详见 [真实调用记录与未验证项](TESTING.zh-CN.md#实机证据与边界)。
 
@@ -117,14 +118,14 @@ npm run check
 
 ## 交付与安装
 
-正式版本 **0.3.0** 与已在 Windows rc.1 安装验收的 **0.3.0-local.1** 使用相同的 5 个生产文件，只更新正式版本号与发布文档。新版包含通用设置入口与工具开关；旧版 Release 保留，不覆盖旧资产。推荐 DSH rc.1；rc.2 仅离线适配且不承诺实机可用性。
+公共正式版本 **0.3.1** 与当前 profile 中此前安装的 **0.3.1-local.1** 构建对应同一套 rc.3 适配代码：本地新增 rc.3 精确版本识别、独立官方发行夹具与离线测试；本地包已安装到 DSH 0.2.2-rc.3，并完成一次 `RC3_LIVE_SMOKE_OK` 最小真实调用。GitHub Release 已提供正式 0.3.1；下方固定安装直链将指向新资产。
 
 ### 快速从 GitHub 安装
 
 本插件不需要先发布到 npm 或进入插件市场。推荐使用固定版本 Release 的 `.tgz` 下载直链：
 
 ```text
-https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.3.0/dsh-subagent-arg-guard-0.3.0.tgz
+https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.3.1/dsh-subagent-arg-guard-0.3.1.tgz
 ```
 
 在 DSH 对话中，请模型先用 `plugin_manager` 的 `list_bundles` 检查，再以此 URL 为 `target` 执行 `install_bundle`（`enabled: true`），最后复查版本、安装/启用状态及是否需要重启。版本不匹配时停止，不授予版本豁免；不要从 npm 按同名包安装。
@@ -132,7 +133,7 @@ https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.3.0/d
 也可以先完全退出使用该 profile 的 DSH，再通过 CLI 安装，然后重新打开并核对启用状态（以下 `desktop` 应替换为你实际使用的 profile）：
 
 ```sh
-dsh plugin --profile desktop add "https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.3.0/dsh-subagent-arg-guard-0.3.0.tgz"
+dsh plugin --profile desktop add "https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.3.1/dsh-subagent-arg-guard-0.3.1.tgz"
 ```
 
 [首页的已发布版本安装步骤](README.md) 包含可直接粘贴给模型的安装请求、Windows 未加入 PATH 时的启动器写法、浏览器下载与校验、本地绝对路径安装和关闭/卸载方式。“仅 GitHub”指本插件的来源；安装器处理现有 profile 的其他依赖时仍可能访问其 registry。
@@ -143,7 +144,7 @@ dsh plugin --profile desktop add "https://github.com/NekogamiJam/dsh-subagent-ar
 
 安装包含 ESM 入口、`dsh.bundle.patch`、发布元信息与文档，不包含测试夹具、npm 缓存或运行日志。**本项目未发布 npm**，不能直接按 npm 包名从公共 npm 仓库安装。
 
-请从 Release 下载 `.tgz`，核对校验值及精确支持的 DSH 版本后，使用支持本地 bundle/tarball 的 DSH 插件管理入口安装。当前 Windows DSH 0.2.2-rc.1 的本地包安装/启用路径已有真实冒烟证据；不据此承诺每个 UI 或安装入口都支持相同路径。不要绕过版本门禁，也不要为了试装直接手改 profile 的依赖与 patch。
+请从 Release 下载 `.tgz`，核对校验值及精确支持的 DSH 版本后，使用支持本地 bundle/tarball 的 DSH 插件管理入口安装。当前公开 GitHub v0.3.1 manifest 支持 rc.1/rc.2/rc.3；rc.3 目前有一次最小真实冒烟，但未完成完整实机矩阵。不能把最小冒烟外推为完整兼容性承诺。不要绕过版本门禁，也不要为了试装直接手改 profile 的依赖与 patch。
 
 插件没有自动安装脚本，不要求修改 ASAR；真实卸载、其他宿主和完整原版无默认模型插件环境的真实进程验收仍未完成，详见 [测试报告](TESTING.zh-CN.md)。
 
