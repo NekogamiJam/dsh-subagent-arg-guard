@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { environment, base } from './guard.test.mjs';
 import { loadCore } from './core-loader.mjs';
-for (const version of ['0.2.2-rc.2', '0.2.2-rc.3']) {
+for (const version of ['0.2.2-rc.2', '0.2.2-rc.3', '0.2.2-rc.4', '0.2.2-rc.5']) {
 const core = await loadCore(version);
 
 for (const exceed of [false, true]) test(`${version} real PTC binding counts repaired call once; excess=${exceed}`, async () => {

@@ -1,4 +1,22 @@
-# 测试报告：dsh-subagent-arg-guard 0.3.1
+# 测试报告：dsh-subagent-arg-guard
+
+## 0.3.2：DSH rc.4 / rc.5 兼容性
+
+DSH `latest` 从 0.2.2-rc.3 直接升到 rc.5。**rc.4 仅静态核验，不计划进行实机测试**。
+
+运行 `node test/audit-official-rcs.mjs` 可重现静态核验：从官方 npm 获取 rc.3/rc.4/rc.5 的 8 个相关包，按 registry SHA-512 校验 tarball，不安装、不执行目标代码。每个目标版本的 142 个 `lib` JavaScript / TypeScript 声明文件与 rc.3 路径相同且逐字节一致。包包括 App Boot、Tools、Tool Subagent、Subagent、Native/PTC executor、Client Settings 和 Client Slots。
+
+**253 项离线回归通过，0 失败、0 跳过；19 个既有夹具的 SHA-256 校验和 5 个生产文件的语法检查通过。** 离线回归对 rc.4/rc.5 使用同一组已验证一致的 rc.3 夹具，替身报告目标版本来检验插件入口、精确版本门禁、参数补救、工具禁用和 PTC 计数。这不是在 rc.4 或 rc.5 启动真实宿主；不能据此宣称安装、GUI、设置持久化或模型 API 已实机通过。
+
+### rc.5 实机冒烟（2026-11-19）
+
+在 Windows Desktop rc.5 启用插件 0.3.2 后，原生 `subagent` 的空选模字段调用与未获准显式路由调用均回退到默认路径并完成；非法代理名仍返回原生错误。这是有限的实机冒烟，不代表完整的 Native/PTC、fork 补救、设置或重启验证。 有效的普通 fork 也成功完成，未测试 fork 的异常参数补救；未改动工具开关或 profile 配置。
+
+- 空选模字段：`provider`、`model` 和 `reasoning_effort` 均为空，调用返回 `RC5_GUARD_EMPTY_OK`。
+- 未获准显式路由：传入不存在的 provider/model 和非空 effort，调用返回 `RC5_GUARD_POLICY_OK`。
+- 非法代理名：混合空选模字段时仍返回原生名称校验错误，未创建子代理。
+
+## 0.3.1 历史验证记录
 
 日期：2026-11-14。本地工作树从公开 0.3.0 增加 rc.3 精确版本分支和 rc.3 官方发行代码夹具；已安装到当前 DSH 0.2.2-rc.3，并完成一次最小真实子代理冒烟；本次变更已同步 GitHub。本轮不改变 rc.1/rc.2 既有处理逻辑。
 

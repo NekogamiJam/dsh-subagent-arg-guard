@@ -6,7 +6,7 @@ import { createGuard, captureCurrentPipeline, MODEL_FIELDS, supportedTool, valid
 import { loadEntry } from './entry-loader.mjs';
 const core = await loadCore();
 // Synthetic Windows path (including a space): passed through only, never accessed on disk.
-export const base = { description: 'Check delegated task', prompt: 'Keep exact task\nwith unicode 中文.', cwd: 'C:\\work space' };
+export const base = { description: 'Check delegated task', prompt: 'Keep exact task\nwith unicode 中文.', cwd: './work space' };
 
 export async function environment(options = {}) {
   const api = options.core ?? core;
