@@ -12,7 +12,7 @@ Version **0.3.2** added exact runtime support for DSH **0.2.2-rc.4 and rc.5**. T
 
 Earlier rc.3 verification consisted of one minimal real-host `subagent` call returning `RC3_LIVE_SMOKE_OK`; it was not a complete Native/PTC, fork, restart-persistence, or real-model-API matrix. The implementation selects its adapter by exact DSH version and fails closed for unknown versions.
 
-The **0.3.3** manifest declares `engines.dsh` and all three optional DSH peer fences as `>=0.2.2-rc.1 <0.3.0-0`. This metadata range does not itself promise runtime compatibility: the plugin still enables runtime behavior only for the exact audited DSH versions **0.2.2-rc.1 through rc.5** and fails closed on other versions (including rc.6) until audited.
+The **0.3.3** manifest declares `engines.dsh` and all three optional DSH peer fences as `>=0.2.2-rc.1 <0.3.0-0`. This metadata range does not itself promise runtime compatibility: the plugin still enables runtime behavior only for the exact audited DSH versions **0.2.2-rc.1 through rc.5** and fails closed on other versions until audited.
 
 At runtime, the plugin uses the host's public version API to select an exact branch and disables itself when the version is unknown or detection fails. It provides six switches under **More > Settings > Subagent Tools and Argument Recovery**: whether to allow `subagent`, whether to allow `subagent_fork`, and the four original recovery settings. The two tools can be disabled independently; **turning off argument recovery does not disable the tool-access rules**. The existing entry ID is retained, so old configuration is not migrated or discarded. The former custom configuration row on the Installed page has been removed. Changes save automatically and later calls read the new settings without a refresh or restart. The settings schema uses a lightweight Schemastery dependency; the host app-boot package and client slots/settings packages are optional peers. See the [Chinese documentation](README.zh-CN.md) for the full details.
 
@@ -32,7 +32,7 @@ Use **v0.3.3**. The previous v0.3.2 and v0.3.1 releases remain available.
 
 The links and commands below install the fixed **v0.3.3** release.
 
-**This plugin is published only through GitHub. It is not published to npm, and it does not need to be listed in the DSH plugin market first.** The recommended method is to install the fixed Release `.tgz`; cloning the repository and installing `gh` are not required.
+**This plugin is published only through GitHub. It is not published to npm.** The recommended method is to install the fixed Release `.tgz`; cloning the repository and installing `gh` are not required.
 
 - Runtime support is currently audited for **DSH 0.2.2-rc.1 through rc.5**. rc.4 was verified statically only; rc.5 passed a limited live smoke test. The broader manifest range is not a runtime-compatibility claim. Do not grant a version exemption.
 - [v0.3.3 package](https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.3.3/dsh-subagent-arg-guard-0.3.3.tgz)

@@ -10,7 +10,7 @@
 
 早期 rc.3 实机验证只完成一次最小真实 `subagent` 调用并返回 `RC3_LIVE_SMOKE_OK`；这不代表完整 Native/PTC、fork、重启持久化或真实模型 API 矩阵。运行时按精确 DSH 版本选择适配器，未知版本 fail-closed。
 
-**0.3.3** 的 manifest 将 `engines.dsh` 和三个可选 DSH peer 围栏统一声明为 `>=0.2.2-rc.1 <0.3.0-0`。此元数据范围不代表运行时代码已兼容范围内所有版本：插件目前仍只对经过核验的精确版本 **0.2.2-rc.1 至 rc.5** 启用逻辑，其他版本（包括 rc.6）仍会 fail-closed，直到完成核验。
+**0.3.3** 的 manifest 将 `engines.dsh` 和三个可选 DSH peer 围栏统一声明为 `>=0.2.2-rc.1 <0.3.0-0`。此元数据范围不代表运行时代码已兼容范围内所有版本：插件目前仍只对经过核验的精确版本 **0.2.2-rc.1 至 rc.5** 启用逻辑，其他版本仍会 fail-closed，直到完成核验。
 
 运行时使用宿主公开版本 API 精确分支，未知版本/检测失败时插件停用。在「更多 → 设置 → 子代理工具与参数补救」提供六项开关：允许调用 `subagent`、允许调用 `subagent_fork`，以及原有四项补救设置。两种工具可以独立禁用，**关闭参数补救不影响工具禁用规则**。配置沿用原 entry ID，不迁移或丢弃旧配置；原插件配置行的自定义页面已移除。勾选后自动保存，后续调用读取新设置，无需刷新或重启。设置 schema 使用 Schemastery 轻量依赖，宿主 app-boot、客户端 slots/settings 仅声明 optional peers。详见 [双版本识别与设置](README.zh-CN.md#双版本识别与设置)。
 
@@ -30,7 +30,7 @@
 
 下列链接和命令安装固定版本 **v0.3.3**。
 
-**本插件仅通过 GitHub 发布，未发布 npm，也不要求先进入 DSH 插件市场。** 推荐安装固定版本的 Release `.tgz`，无需先 clone 仓库或安装 `gh`。
+**本插件仅通过 GitHub 发布，未发布 npm。** 推荐安装固定版本的 Release `.tgz`，无需先 clone 仓库或安装 `gh`。
 
 - 运行时目前仅核验支持 **DSH 0.2.2-rc.1 至 rc.5**。rc.4 仅静态核验，rc.5 通过有限实机冒烟；较宽的 manifest 围栏不代表运行时兼容性承诺。不要授予版本豁免。
 - [v0.3.3 安装包直链](https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.3.3/dsh-subagent-arg-guard-0.3.3.tgz)
