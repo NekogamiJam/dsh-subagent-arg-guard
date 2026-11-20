@@ -1,5 +1,9 @@
 # 测试报告：dsh-subagent-arg-guard
 
+## 0.3.3：扩大 manifest 版本围栏
+
+`engines.dsh` 及 `@deepseek-ai/dsh-app-boot`、`@deepseek-ai/dsh-client-ui-settings`、`@deepseek-ai/dsh-client-ui-slots` 三个 peer dependency 均声明为 `>=0.2.2-rc.1 <0.3.0-0`。这是安装/依赖解析围栏；运行时 `SUPPORTED_VERSIONS` 仍精确列出 rc.1–rc.5，rc.6 等未核验版本仍会 fail-closed。新增回归测试锁定四个 manifest 范围。此次没有改变运行时适配逻辑。
+
 ## 0.3.2：DSH rc.4 / rc.5 兼容性
 
 DSH `latest` 从 0.2.2-rc.3 直接升到 rc.5。**rc.4 仅静态核验，不计划进行实机测试**。

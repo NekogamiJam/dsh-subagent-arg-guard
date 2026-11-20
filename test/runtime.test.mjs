@@ -4,6 +4,18 @@ import { detectRuntimeVersion, readFlag } from '../lib/runtime.js';
 import { loadCore } from './core-loader.mjs';
 import { loadEntry } from './entry-loader.mjs';
 import { environment, base } from './guard.test.mjs';
+import { readFile } from 'node:fs/promises';
+import { SUPPORTED_VERSIONS } from '../lib/guard.js';
+
+const manifest = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'));
+test('manifest permits the requested release family while runtime stays on audited exact versions', () => {
+  const fence = '>=0.2.2-rc.1 <0.3.0-0';
+  assert.equal(manifest.engines.dsh, fence);
+  for (const peer of ['@deepseek-ai/dsh-app-boot', '@deepseek-ai/dsh-client-ui-settings', '@deepseek-ai/dsh-client-ui-slots']) {
+    assert.equal(manifest.peerDependencies[peer], fence);
+  }
+  assert.deepEqual(SUPPORTED_VERSIONS, ['0.2.2-rc.1', '0.2.2-rc.2', '0.2.2-rc.3', '0.2.2-rc.4', '0.2.2-rc.5']);
+});
 
 for (const version of ['0.2.2-rc.1', '0.2.2-rc.2', '0.2.2-rc.3', '0.2.2-rc.4', '0.2.2-rc.5']) {
   test(`runtime detection selects exact ${version}`, async () => {
