@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Subagent argument guard",
+    "description": "Retry known subagent model-argument errors once using the original default route. Toggle subagent and subagent_fork independently."
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "子代理参数守卫",
+    "description": "遇到已知的子代理选模参数错误时，移除显式选模参数并按原默认路径重试一次；可独立开关 subagent 和 subagent_fork。"
+  }
+}

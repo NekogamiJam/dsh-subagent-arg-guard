@@ -20,21 +20,22 @@
 
 - [完整中文说明](README.zh-CN.md)：精确补救范围、兼容限制、审计语义和安装说明。
 - [测试与验证报告](TESTING.zh-CN.md)：离线回归和官方产物核验、rc.3 宿主最小真实冒烟、rc.1 原生 Config/版本只读探针与明确的未验证项；另保留旧版真实冒烟历史。
-- [GitHub Releases](https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases)：安装包与 SHA-256 校验文件。未发布 npm，不应直接按包名从 npm 安装。
+- [GitHub Releases](https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases)：安装包与 SHA-256 校验文件。
+- [npm](https://www.npmjs.com/package/dsh-subagent-arg-guard)：与同版本 GitHub Release 使用同一安装包。
 
 ## 版本与依赖
 
-请使用 **v0.3.3**；旧版 v0.3.2 和 v0.3.1 仍可下载。
+请使用 **v0.3.4**。此版本在 DSH「插件」页显示「子代理参数守卫」、简述与盾牌图标；运行时兼容性与守卫逻辑不变。
 
 ## 快速安装
 
-下列链接和命令安装固定版本 **v0.3.3**。
+下列链接和命令安装固定版本 **v0.3.4**。
 
-**本插件仅通过 GitHub 发布，未发布 npm。** 推荐安装固定版本的 Release `.tgz`，无需先 clone 仓库或安装 `gh`。
+**支持 npm 和 GitHub Release 两种来源。** npm 包的 `repository.url` 指向本仓库，供 DSH 插件市场自动关联。可通过插件市场安装，或执行 `dsh plugin --profile desktop add dsh-subagent-arg-guard@0.3.4`；下方也保留 GitHub `.tgz` 安装方法。
 
 - 运行时目前仅核验支持 **DSH 0.2.2-rc.1 至 rc.5**。rc.4 仅静态核验，rc.5 通过有限实机冒烟；较宽的 manifest 围栏不代表运行时兼容性承诺。不要授予版本豁免。
-- [v0.3.3 安装包直链](https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.3.3/dsh-subagent-arg-guard-0.3.3.tgz)
-- [同版本 SHA-256 校验文件](https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.3.3/SHA256SUMS.txt)
+- [v0.3.4 安装包直链](https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.3.4/dsh-subagent-arg-guard-0.3.4.tgz)
+- [同版本 SHA-256 校验文件](https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.3.4/SHA256SUMS.txt)
 
 ### 方法一：在 DSH 对话中让模型安装（推荐）
 
@@ -43,15 +44,15 @@
 ```text
 请使用 DSH 的 plugin_manager 工具安装并启用 dsh-subagent-arg-guard。
 先 list_bundles 检查当前安装状态，再通过 install_bundle 安装：
-target: https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.3.3/dsh-subagent-arg-guard-0.3.3.tgz
+target: https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.3.4/dsh-subagent-arg-guard-0.3.4.tgz
 enabled: true
 
 请先确认宿主为 DSH 0.2.2-rc.1 至 rc.5，不授予版本豁免。
 其他 DSH 版本请停止，不授予版本豁免，不升级宿主。
-请直接使用以上 GitHub Release 地址，不要从 npm 按同名包安装，
+若选择 GitHub Release 来源，请直接使用以上地址；
 不额外安装默认模型插件，不修改 ASAR，不批准额外的安装脚本。
 沿用当前 registry 配置；可选参数不用时请省略，不要填写空字符串。
-完成后再次 list_bundles，确认版本为 0.3.3、installed 和 enabled 都为 true，
+完成后再次 list_bundles，确认版本为 0.3.4、installed 和 enabled 都为 true，
 并报告 application 状态；如果需要重启，请明确告诉我，不要把未生效说成成功。
 ```
 
@@ -64,7 +65,7 @@ enabled: true
 先完全退出使用该 profile 的 DSH（桌面版包括托盘），在终端执行：
 
 ```sh
-dsh plugin --profile desktop add "https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.3.3/dsh-subagent-arg-guard-0.3.3.tgz"
+dsh plugin --profile desktop add "https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.3.4/dsh-subagent-arg-guard-0.3.4.tgz"
 ```
 
 安装命令成功后重新打开 DSH，并用 `plugin_manager` 的 `list_bundles` 或插件管理页核对安装与启用状态。DSH 会通过自己的 profile 包管理流程识别 bundle；不要在普通工作区中用 `npm install dsh-subagent-arg-guard` 代替。
@@ -72,7 +73,7 @@ dsh plugin --profile desktop add "https://github.com/NekogamiJam/dsh-subagent-ar
 如果 Windows 标准安装的 `dsh` 没有加入 PATH，可在 PowerShell 使用启动器路径：
 
 ```powershell
-& "$env:LOCALAPPDATA\Programs\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop add "https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.3.3/dsh-subagent-arg-guard-0.3.3.tgz"
+& "$env:LOCALAPPDATA\Programs\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop add "https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.3.4/dsh-subagent-arg-guard-0.3.4.tgz"
 ```
 
 该路径只适用于 Windows 标准安装位置；自定义安装或其他系统请使用各自实际的 `dsh` 启动器。
@@ -82,13 +83,13 @@ dsh plugin --profile desktop add "https://github.com/NekogamiJam/dsh-subagent-ar
 如果模型或安装入口不能处理远程 URL，先从上述 Release 下载 `.tgz` 和 `SHA256SUMS.txt`。在下载目录中核对包的 SHA-256，例如 PowerShell：
 
 ```powershell
-Get-FileHash .\dsh-subagent-arg-guard-0.3.3.tgz -Algorithm SHA256
+Get-FileHash .\dsh-subagent-arg-guard-0.3.4.tgz -Algorithm SHA256
 ```
 
 输出应与 `SHA256SUMS.txt` 中的值一致。然后完全退出 DSH，在同一 PowerShell 中安装下载包：
 
 ```powershell
-$package = (Resolve-Path ".\dsh-subagent-arg-guard-0.3.3.tgz").Path
+$package = (Resolve-Path ".\dsh-subagent-arg-guard-0.3.4.tgz").Path
 dsh plugin --profile desktop add "$package"
 ```
 
@@ -104,7 +105,7 @@ dsh plugin --profile desktop add "$package"
 dsh plugin --profile desktop remove dsh-subagent-arg-guard
 ```
 
-**安装范围说明：**“仅 GitHub”指本插件的发布/下载来源，不代表 DSH 的全部网络流量只访问 GitHub。安装器仍可能按现有配置访问 registry 处理 profile 的其他依赖；不要因此把插件 target 改成 npm 同名包。本段方法依据 DSH 0.2.2-rc.3 的安装 spec、工具和 CLI 接口核对；本地 0.3.1-local.1 已完成本地 `.tgz` 安装/启用和 `RC3_LIVE_SMOKE_OK` 最小冒烟，但不代表每条远程安装或卸载路径都已实测。
+**安装范围说明：**从 GitHub 下载插件包时，安装器仍可能按现有 registry 配置获取依赖。npm 与 GitHub 使用相同版本的安装包，不需要安装两份。
 
 ## 从源码验证
 

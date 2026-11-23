@@ -1,5 +1,7 @@
 # Generated packages and local build/smoke output
 /dist/
+/npm-release/*
+!/npm-release/README.md
 
 # Dependency caches and machine-specific configuration
 /node_modules/
