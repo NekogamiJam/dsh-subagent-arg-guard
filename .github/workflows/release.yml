@@ -1,0 +1,189 @@
+name: Package and release
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.event_name == 'push' && github.ref_type == 'tag' && 'tag-release' || format('check-{0}', github.run_id) }}
+  cancel-in-progress: false
+
+jobs:
+  pack:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.pack.outputs.version }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Test and verify fixtures
+        run: |
+          npm run check
+          node test/verify-fixtures.mjs
+          npm test
+      - name: Pack and verify the release archive
+        id: pack
+        shell: bash
+        run: |
+          version=$(node -p 'require("./package.json").version')
+          if [[ "$GITHUB_EVENT_NAME" == push && "$GITHUB_REF_TYPE" == tag ]]; then
+            [[ "$GITHUB_REF_NAME" == "v$version" && "$version" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]
+            git merge-base --is-ancestor HEAD refs/remotes/origin/main
+          fi
+          npm pack --ignore-scripts --json --pack-destination npm-release > "$RUNNER_TEMP/pack.json"
+          node --input-type=module - <<'NODE'
+          import assert from 'node:assert/strict';
+          import { readFileSync } from 'node:fs';
+          const name = 'dsh-subagent-arg-guard';
+          const repo = `NekogamiJam/${name}`;
+          const m = JSON.parse(readFileSync('package.json', 'utf8'));
+          assert.equal(m.name, name);
+          assert.equal(m.repository.url, `git+https://github.com/${repo}.git`);
+          assert.equal(m.dsh.bundle.patch, './cordis.patch.yml');
+          assert.equal(m.exports['./icon'], './icon.svg');
+          assert.equal(m.exports['./locale/*.json'], './locale/*.json');
+          const [pack] = JSON.parse(readFileSync(`${process.env.RUNNER_TEMP}/pack.json`, 'utf8'));
+          assert.equal(pack.filename, `${name}-${m.version}.tgz`);
+          assert.deepEqual(pack.files.map(({path}) => path).sort(), [
+            'LICENSE', 'README.md', 'README.zh-CN.md', 'TESTING.zh-CN.md', 'cordis.patch.yml',
+            'icon.svg', 'lib/access.js', 'lib/client.js', 'lib/guard.js', 'lib/index.js', 'lib/runtime.js',
+            'locale/en.json', 'locale/zh.json', 'package.json',
+          ].sort());
+          NODE
+          (
+            cd npm-release
+            cp "dsh-subagent-arg-guard-$version.tgz" dsh-subagent-arg-guard.tgz
+            sha256sum "dsh-subagent-arg-guard-$version.tgz" dsh-subagent-arg-guard.tgz > SHA256SUMS.txt
+          )
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: release-package
+          path: |
+            npm-release/*.tgz
+            npm-release/SHA256SUMS.txt
+          if-no-files-found: error
+
+  npm:
+    needs: pack
+    if: github.repository == 'NekogamiJam/dsh-subagent-arg-guard' && github.event_name == 'push' && github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      group: publish-npm
+      cancel-in-progress: false
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: release-package
+          path: npm-release
+      - name: Publish verified archive to npm using OIDC
+        working-directory: npm-release
+        env:
+          VERSION: ${{ needs.pack.outputs.version }}
+        run: |
+          sha256sum --check SHA256SUMS.txt
+          node --input-type=module - <<'NODE'
+          import assert from 'node:assert/strict';
+          import { createHash } from 'node:crypto';
+          import { readFileSync } from 'node:fs';
+          import { execFileSync } from 'node:child_process';
+          import { setTimeout } from 'node:timers/promises';
+          const name = 'dsh-subagent-arg-guard';
+          const version = process.env.VERSION;
+          const registry = 'https://registry.npmjs.org/';
+          const archive = `${name}-${version}.tgz`;
+          const integrity = `sha512-${createHash('sha512').update(readFileSync(archive)).digest('base64')}`;
+          async function meta(selector) {
+            const r = await fetch(`${registry}${name}/${selector}?check=${Date.now()}`, {
+              signal: AbortSignal.timeout(10000), headers: { 'cache-control': 'no-cache' },
+            });
+            if (r.status === 404) return null;
+            assert(r.ok, `npm registry returned HTTP ${r.status}`);
+            return r.json();
+          }
+          function verify(m) {
+            assert.equal(m.dist?.integrity, integrity, `npm ${version} exists but the archive differs`);
+            console.log(`npm verified ${name}@${version}`);
+          }
+          const existing = await meta(version);
+          const latest = await meta('latest');
+          if (existing) {
+            verify(existing); // Recover from a later job failure without republishing.
+            assert.equal(latest?.version, version, 'This version is no longer npm latest; do not promote an older GitHub release');
+          } else {
+            assert(latest && /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(latest.version), 'Expected an existing stable npm latest version');
+            const previous = latest.version.split('.').map(BigInt);
+            const next = version.split('.').map(BigInt);
+            const firstChange = next.findIndex((part, i) => part !== previous[i]);
+            assert(firstChange >= 0 && next[firstChange] > previous[firstChange], 'Release version must be newer than npm latest');
+            const cli = execFileSync('npm', ['--version'], {encoding: 'utf8'}).trim().split('.').map(Number);
+            assert(cli[0] > 11 || (cli[0] === 11 && (cli[1] > 5 || (cli[1] === 5 && cli[2] >= 1))), 'Trusted Publishing requires npm >=11.5.1');
+            execFileSync('npm', ['publish', `./${archive}`, '--access=public', '--tag=latest', `--registry=${registry}`, '--ignore-scripts'], {stdio: 'inherit'});
+            for (let attempt = 0; attempt < 24; attempt++) {
+              const published = await meta(version);
+              if (published) { verify(published); process.exit(0); }
+              await setTimeout(5000);
+            }
+            throw new Error('npm has not exposed the version yet. Verify the registry before rerunning.');
+          }
+          NODE
+
+  github-release:
+    needs: [pack, npm]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: release-package
+          path: npm-release
+      - name: Publish the same bytes to GitHub Releases
+        working-directory: npm-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.pack.outputs.version }}
+        shell: bash
+        run: |
+          sha256sum --check SHA256SUMS.txt
+          tag="$GITHUB_REF_NAME"
+          release=$(gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json isDraft,assets) || {
+            gh release create "$tag" --repo "$GITHUB_REPOSITORY" --verify-tag --draft --generate-notes
+            release=$(gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json isDraft,assets)
+          }
+          draft=$(jq -r '.isDraft' <<< "$release")
+          for file in "dsh-subagent-arg-guard-$VERSION.tgz" dsh-subagent-arg-guard.tgz SHA256SUMS.txt; do
+            digest="sha256:$(sha256sum "$file" | cut -d' ' -f1)"
+            remote=$(jq -r --arg name "$file" '.assets[] | select(.name == $name) | .digest' <<< "$release")
+            if [[ -z "$remote" ]]; then
+              [[ "$draft" == true ]]
+              gh release upload "$tag" "$file" --repo "$GITHUB_REPOSITORY"
+              remote=$(gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json assets --jq ".assets[] | select(.name == \"$file\") | .digest")
+            fi
+            [[ "$remote" == "$digest" ]] || { echo "Digest mismatch: $file" >&2; exit 1; }
+          done
+          if [[ "$draft" == true ]]; then
+            gh release edit "$tag" --repo "$GITHUB_REPOSITORY" --draft=false --latest
+          fi
