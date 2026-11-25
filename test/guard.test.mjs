@@ -7,6 +7,11 @@ import { loadEntry } from './entry-loader.mjs';
 const core = await loadCore();
 // Synthetic Windows path (including a space): passed through only, never accessed on disk.
 export const base = { description: 'Check delegated task', prompt: 'Keep exact task\nwith unicode 中文.', cwd: './work space' };
+export function baseForVersion(version) {
+  if (!version.startsWith('0.2.3-alpha.')) return base;
+  const { cwd: _removed, ...args } = base; // DSH 0.2.3 alpha removed the subagent cwd argument.
+  return args;
+}
 
 export async function environment(options = {}) {
   const api = options.core ?? core;
@@ -126,7 +131,8 @@ export function assertRepair(e, result, expected = undefined) {
   assert.equal(e.stats.post[0].exec, original); // Original request + corrected outcome audit semantics.
   const request = e.version === '0.2.2-rc.1' ? e.stats.starts[0].request : e.stats.starts[0];
   assert.equal(request.prompt[0].text, base.prompt);
-  assert.equal(request.cwd, base.cwd);
+  if (e.version.startsWith('0.2.3-alpha.')) assert.equal(request.cwd, undefined);
+  else assert.equal(request.cwd, base.cwd);
   if (expected) assert.deepEqual({ ...request.agentOptions }, expected);
 }
 

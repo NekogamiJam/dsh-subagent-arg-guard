@@ -3,34 +3,34 @@ import assert from 'node:assert/strict';
 import { detectRuntimeVersion, readFlag } from '../lib/runtime.js';
 import { loadCore } from './core-loader.mjs';
 import { loadEntry } from './entry-loader.mjs';
-import { environment, base } from './guard.test.mjs';
+import { environment, base, baseForVersion } from './guard.test.mjs';
 import { readFile } from 'node:fs/promises';
 import { SUPPORTED_VERSIONS } from '../lib/guard.js';
 
 const manifest = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'));
 test('manifest permits the requested release family while runtime stays on audited exact versions', () => {
-  const fence = '>=0.2.2-rc.1 <0.3.0-0';
+  const fence = '>=0.2.2-rc.1 <0.3.0-0 || 0.2.3-alpha.1 || 0.2.3-alpha.2';
   assert.equal(manifest.engines.dsh, fence);
   for (const peer of ['@deepseek-ai/dsh-app-boot', '@deepseek-ai/dsh-client-ui-settings', '@deepseek-ai/dsh-client-ui-slots']) {
     assert.equal(manifest.peerDependencies[peer], fence);
   }
-  assert.deepEqual(SUPPORTED_VERSIONS, ['0.2.2-rc.1', '0.2.2-rc.2', '0.2.2-rc.3', '0.2.2-rc.4', '0.2.2-rc.5']);
+  assert.deepEqual(SUPPORTED_VERSIONS, ['0.2.2-rc.1', '0.2.2-rc.2', '0.2.2-rc.3', '0.2.2-rc.4', '0.2.2-rc.5', '0.2.3-alpha.1', '0.2.3-alpha.2']);
 });
 
-for (const version of ['0.2.2-rc.1', '0.2.2-rc.2', '0.2.2-rc.3', '0.2.2-rc.4', '0.2.2-rc.5']) {
+for (const version of ['0.2.2-rc.1', '0.2.2-rc.2', '0.2.2-rc.3', '0.2.2-rc.4', '0.2.2-rc.5', '0.2.3-alpha.1', '0.2.3-alpha.2']) {
   test(`runtime detection selects exact ${version}`, async () => {
     assert.deepEqual(await detectRuntimeVersion(async () => ({ getDshRuntimeVersion: () => version })), { version, supported: true, reason: 'supported' });
   });
   test(`actual production entry recovers on ${version}`, async () => {
     const core = await loadCore(version);
     const e = await environment({ core, version, actualEntry: true });
-    const result = await e.invoke({ ...base, provider: '' });
+    const result = await e.invoke({ ...baseForVersion(version), provider: version.startsWith('0.2.3-alpha.') ? 'allowed' : '' });
     assert.equal(result.isError, false, result.error?.message);
     assert.equal(e.stats.starts.length, 1);
     assert.equal(e.stats.pre.length, 2);
   });
 }
-for (const version of ['0.2.2', '0.2.2-rc.6', '0.2.1', 'v0.2.2-rc.1', ' 0.2.2-rc.1 ', '', null]) {
+for (const version of ['0.2.2', '0.2.2-alpha.2', '0.2.2-alpha.3', '0.2.2-rc.6', '0.2.3-alpha.3', '0.2.3-beta.1', '0.2.3', '0.2.1', 'v0.2.2-rc.1', ' 0.2.2-rc.1 ', '', null]) {
   test(`unknown/untrusted runtime is inactive: ${JSON.stringify(version)}`, async () => {
     const e = await environment({ actualEntry: true, detectedVersion: version === null ? '' : version });
     const result = await e.invoke({ ...base, provider: '' });

@@ -12,7 +12,7 @@ Version **0.3.2** added exact runtime support for DSH **0.2.2-rc.4 and rc.5**. T
 
 Earlier rc.3 verification consisted of one minimal real-host `subagent` call returning `RC3_LIVE_SMOKE_OK`; it was not a complete Native/PTC, fork, restart-persistence, or real-model-API matrix. The implementation selects its adapter by exact DSH version and fails closed for unknown versions.
 
-The **0.3.3** manifest declares `engines.dsh` and all three optional DSH peer fences as `>=0.2.2-rc.1 <0.3.0-0`. This metadata range does not itself promise runtime compatibility: the plugin still enables runtime behavior only for the exact audited DSH versions **0.2.2-rc.1 through rc.5** and fails closed on other versions until audited.
+The **0.3.6** release preserves the existing runtime support for **DSH 0.2.2-rc.1 through rc.5** and adds isolated offline adapters for the published **0.2.3-alpha.1 and alpha.2** builds. Official npm integrity and execution contracts are statically audited; selected release code is exercised in a VM with mocked Host services. **Neither DSH 0.2.3 alpha was installed or run on a real host, so this is not live alpha certification.** Alpha.3 and other unaudited builds fail closed. DSH 0.2.3-alpha.1 and later require Node.js 24.22.3+ or 26.13.1+ at the host level. See the [test report](TESTING.zh-CN.md).
 
 At runtime, the plugin uses the host's public version API to select an exact branch and disables itself when the version is unknown or detection fails. It provides six switches under **More > Settings > Subagent Tools and Argument Recovery**: whether to allow `subagent`, whether to allow `subagent_fork`, and the four original recovery settings. The two tools can be disabled independently; **turning off argument recovery does not disable the tool-access rules**. The existing entry ID is retained, so old configuration is not migrated or discarded. The former custom configuration row on the Installed page has been removed. Changes save automatically and later calls read the new settings without a refresh or restart. The settings schema uses a lightweight Schemastery dependency; the host app-boot package and client slots/settings packages are optional peers. See the [Chinese documentation](README.md) for the full details.
 
@@ -27,17 +27,17 @@ The tool switches reject new calls at the native prepare and dispatch entry poin
 
 ## Version and dependencies
 
-Use **v0.3.5**. This release changes the default README language to Chinese and retains this English edition. Runtime compatibility and guard behavior are unchanged.
+Use **v0.3.6**. This release adds offline compatibility adapters for DSH 0.2.3-alpha.1/alpha.2 while retaining the existing 0.2.2-rc.1–rc.5 support.
 
 ## Quick installation
 
-The links and commands below install the fixed **v0.3.5** release.
+The links and commands below install the fixed **v0.3.6** release.
 
-**Install from npm or from a GitHub Release.** The npm package declares this repository in `repository.url` so the DSH plugin market can associate the two sources automatically. Use the market, run `dsh plugin --profile desktop add dsh-subagent-arg-guard@0.3.5`, or follow the GitHub `.tgz` instructions below.
+**Install from npm or from a GitHub Release.** The npm package declares this repository in `repository.url` so the DSH plugin market can associate the two sources automatically. Use the market, run `dsh plugin --profile desktop add dsh-subagent-arg-guard@0.3.6`, or follow the GitHub `.tgz` instructions below.
 
-- Runtime support is currently audited for **DSH 0.2.2-rc.1 through rc.5**. rc.4 was verified statically only; rc.5 passed a limited live smoke test. The broader manifest range is not a runtime-compatibility claim. Do not grant a version exemption.
-- [v0.3.5 package](https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.3.5/dsh-subagent-arg-guard-0.3.5.tgz)
-- [SHA-256 file for the same version](https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.3.5/SHA256SUMS.txt)
+- The runtime allowlist is exact: **DSH 0.2.2-rc.1 through rc.5**, plus **0.2.3-alpha.1 and alpha.2**. rc.4 and both 0.2.3 alphas received static verification only; rc.5 passed a limited live smoke test. Alpha.3 and any other unaudited build fail closed. Do not grant a version exemption.
+- [v0.3.6 package](https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.3.6/dsh-subagent-arg-guard-0.3.6.tgz)
+- [SHA-256 file for the same version](https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.3.6/SHA256SUMS.txt)
 
 ### Method 1: Ask a DSH conversation to install it (recommended)
 
@@ -46,15 +46,15 @@ Copy the following text into a conversation in the DSH profile where you want to
 ```text
 Use DSH's plugin_manager tool to install and enable dsh-subagent-arg-guard.
 First use list_bundles to check the current installation, then install it with install_bundle:
-target: https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.3.5/dsh-subagent-arg-guard-0.3.5.tgz
+target: https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.3.6/dsh-subagent-arg-guard-0.3.6.tgz
 enabled: true
 
-First check that the host is DSH 0.2.2-rc.1 through rc.5. Do not grant a version exemption.
-Stop on any other DSH version. Do not grant a version exemption or upgrade the host.
+First check that the host is DSH 0.2.2-rc.1 through rc.5, or 0.2.3-alpha.1 / alpha.2. The 0.2.3 alphas are statically verified only; no alpha host is installed or tested. Stop on any other version and do not upgrade the host or grant a version exemption.
+
 For the GitHub Release source, use the URL above directly.
-do not install an additional default-model plugin, do not modify ASAR, and do not approve extra install scripts.
+Do not install an additional default-model plugin, modify ASAR, or approve extra install scripts.
 Keep the current registry configuration. Omit optional arguments when unused; do not fill them with empty strings.
-After installation, run list_bundles again and confirm that the version is 0.3.5 and both installed and enabled are true.
+After installation, run list_bundles again and confirm that the version is 0.3.6 and both installed and enabled are true.
 Report the application status; if a restart is required, say so explicitly and do not describe an unapplied change as successful.
 ```
 
@@ -67,7 +67,7 @@ The example below uses the commonly used Desktop `desktop` profile. If you use a
 Fully exit DSH using this profile first, including the tray process on Desktop, then run:
 
 ```sh
-dsh plugin --profile desktop add "https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.3.5/dsh-subagent-arg-guard-0.3.5.tgz"
+dsh plugin --profile desktop add "https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.3.6/dsh-subagent-arg-guard-0.3.6.tgz"
 ```
 
 After the command succeeds, reopen DSH and verify the installation and enabled state with `plugin_manager` `list_bundles` or the plugin manager page. DSH identifies the bundle through its own profile package-management flow; do not replace this with `npm install dsh-subagent-arg-guard` in an ordinary workspace.
@@ -75,7 +75,7 @@ After the command succeeds, reopen DSH and verify the installation and enabled s
 If the standard Windows `dsh` command is not on `PATH`, use the launcher path in PowerShell:
 
 ```powershell
-& "$env:LOCALAPPDATA\Programs\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop add "https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.3.5/dsh-subagent-arg-guard-0.3.5.tgz"
+& "$env:LOCALAPPDATA\Programs\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop add "https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.3.6/dsh-subagent-arg-guard-0.3.6.tgz"
 ```
 
 That path applies only to the standard Windows installation location. Use the actual launcher for custom installations and other operating systems.
@@ -85,13 +85,13 @@ That path applies only to the standard Windows installation location. Use the ac
 If the model or installation entry cannot handle a remote URL, download the `.tgz` and `SHA256SUMS.txt` from the Release above. Verify the package SHA-256 in the download directory, for example in PowerShell:
 
 ```powershell
-Get-FileHash .\dsh-subagent-arg-guard-0.3.5.tgz -Algorithm SHA256
+Get-FileHash .\dsh-subagent-arg-guard-0.3.6.tgz -Algorithm SHA256
 ```
 
 The output must match the value in `SHA256SUMS.txt`. Then fully exit DSH and install the downloaded package in the same PowerShell session:
 
 ```powershell
-$package = (Resolve-Path ".\dsh-subagent-arg-guard-0.3.5.tgz").Path
+$package = (Resolve-Path ".\dsh-subagent-arg-guard-0.3.6.tgz").Path
 dsh plugin --profile desktop add "$package"
 ```
 

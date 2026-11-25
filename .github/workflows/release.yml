@@ -34,6 +34,7 @@ jobs:
         run: |
           npm run check
           node test/verify-fixtures.mjs
+          node test/audit-official-v023.mjs
           npm test
       - name: Pack and verify the release archive
         id: pack

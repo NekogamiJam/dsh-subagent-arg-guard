@@ -1,0 +1,131 @@
+{
+  "versions": [
+    "0.2.3-alpha.1",
+    "0.2.3-alpha.2"
+  ],
+  "packages": [
+    {
+      "name": "@deepseek-ai/dsh-app-boot",
+      "version": "0.2.3-alpha.1",
+      "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-app-boot/-/dsh-app-boot-0.2.3-alpha.1.tgz",
+      "integrity": "sha512-m/J4Ec1DdoR/+w7oUgFtQDyJuE+8CaHvB9jp6XMi8ptnR3UaOUOwAMW0tMTjUYUN32ukMEaSKhE+FGjjcH2d1w=="
+    },
+    {
+      "name": "@deepseek-ai/dsh-error",
+      "version": "0.2.3-alpha.1",
+      "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-error/-/dsh-error-0.2.3-alpha.1.tgz",
+      "integrity": "sha512-A90KTtORyODlGt6BwYDDTCZUQXo4JT9hFLKe/9bxUL9Jt4B/MRdXCVAfuhv/+wLAImTKAE2W4nI+3EHE5AiyLw=="
+    },
+    {
+      "name": "@deepseek-ai/dsh-tools",
+      "version": "0.2.3-alpha.1",
+      "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-tools/-/dsh-tools-0.2.3-alpha.1.tgz",
+      "integrity": "sha512-vM3FsP0rOOzlqO1WLpFDs86AIsWW/YCJpgVRlOvoNCda1Fiq9wgbBIy0nE5oNoyMOI/TqVhdXTXXs5OG1oCqcg=="
+    },
+    {
+      "name": "@deepseek-ai/dsh-tool-subagent",
+      "version": "0.2.3-alpha.1",
+      "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-tool-subagent/-/dsh-tool-subagent-0.2.3-alpha.1.tgz",
+      "integrity": "sha512-iR4nksaZcEX82ELLGu489SC2VhC53HRo3nFbu1xslVHkUY3G0B+QAln4M9icXjHpeXGJi9ACyXRTcqREHQUl5A=="
+    },
+    {
+      "name": "@deepseek-ai/dsh-subagent",
+      "version": "0.2.3-alpha.1",
+      "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-subagent/-/dsh-subagent-0.2.3-alpha.1.tgz",
+      "integrity": "sha512-PJGAjmAkWb1px2DPiJxRirm9OIIXTxjbRtkUt5zPP82sX0baRCaVbaj8GfC6PDbC7IO2sLMt5SHA5bxTkSK9Yg=="
+    },
+    {
+      "name": "@deepseek-ai/dsh-tool-executor-native",
+      "version": "0.2.3-alpha.1",
+      "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-tool-executor-native/-/dsh-tool-executor-native-0.2.3-alpha.1.tgz",
+      "integrity": "sha512-Wlo6IwMHZBQ1mZ8/7gyukVxlzSo/WxyjxV6hnm0HCU5pYqm1f7L11fX1JZqvpnvy74JBhNS4hrxe6aelDTktKA=="
+    },
+    {
+      "name": "@deepseek-ai/dsh-tool-executor-ptc",
+      "version": "0.2.3-alpha.1",
+      "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-tool-executor-ptc/-/dsh-tool-executor-ptc-0.2.3-alpha.1.tgz",
+      "integrity": "sha512-RNwAJ/EoPWM3iJTwsgFI6sBFDbaU8eWTp4yej97kWgygc7QONcCd/d1prVBIVvTvNkhuNXOsS1eBjjqteAOGzw=="
+    },
+    {
+      "name": "@deepseek-ai/dsh-client-ui-settings",
+      "version": "0.2.3-alpha.1",
+      "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-client-ui-settings/-/dsh-client-ui-settings-0.2.3-alpha.1.tgz",
+      "integrity": "sha512-rfQG6AFfrvdC520hVgWvSrr34+k3B7IMJMS/WSRJ4qPzHjiT7HtLc1skXK8474RDrIT1n089Nvhqxs+5eUMe4w=="
+    },
+    {
+      "name": "@deepseek-ai/dsh-client-ui-slots",
+      "version": "0.2.3-alpha.1",
+      "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-client-ui-slots/-/dsh-client-ui-slots-0.2.3-alpha.1.tgz",
+      "integrity": "sha512-7ZpflaC9VlcO3PS6XDW4gRSgq8azr3gFeIs3r8pqt/N80hScZNgDTeKf0+dltHm7tiSckv4UTlPTGvm8Tuq7ow=="
+    },
+    {
+      "name": "@deepseek-ai/dsh-app-boot",
+      "version": "0.2.3-alpha.2",
+      "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-app-boot/-/dsh-app-boot-0.2.3-alpha.2.tgz",
+      "integrity": "sha512-5CMNhctrM6NiHm1XP2HW8ig3bfDdXj6eTyX2LQ/lk0CR98vRZm0S4hQ8kLu2o8UseKhgeOGuAC0qf5UgR0KmMw=="
+    },
+    {
+      "name": "@deepseek-ai/dsh-error",
+      "version": "0.2.3-alpha.2",
+      "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-error/-/dsh-error-0.2.3-alpha.2.tgz",
+      "integrity": "sha512-0TcXIOtsGpursCrI53LsbRyJHi91ypcQYzta7RM+2yD4rIGXbnBHme4Ppd9OScUqwTvZAUqZe09GJC1riBECwQ=="
+    },
+    {
+      "name": "@deepseek-ai/dsh-tools",
+      "version": "0.2.3-alpha.2",
+      "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-tools/-/dsh-tools-0.2.3-alpha.2.tgz",
+      "integrity": "sha512-j9HYvYQvv8qm/CeUJjHZpFj1Vgj65k4bpl/F56ZQ7tXV/0wfFAbGmjPBfG4my6BJBOjn2wsFkf4KEooLs06gyg=="
+    },
+    {
+      "name": "@deepseek-ai/dsh-tool-subagent",
+      "version": "0.2.3-alpha.2",
+      "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-tool-subagent/-/dsh-tool-subagent-0.2.3-alpha.2.tgz",
+      "integrity": "sha512-pAyWZnTBNAMebHPz3I4rDjMmnNMuv6r/WdvvFieloi+i2/tNiGGVRWecW1MxmgCQigR9R4ltWzyp4x1WKZJSow=="
+    },
+    {
+      "name": "@deepseek-ai/dsh-subagent",
+      "version": "0.2.3-alpha.2",
+      "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-subagent/-/dsh-subagent-0.2.3-alpha.2.tgz",
+      "integrity": "sha512-dL9McGPuGNF6Wwn6Vxh8bTAM4IXsEHv4LUlKW/HvM5Rnoaqq3kC3quhe1b1P5RFyyKMrVM+DB7IvDfyAdxQVRQ=="
+    },
+    {
+      "name": "@deepseek-ai/dsh-tool-executor-native",
+      "version": "0.2.3-alpha.2",
+      "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-tool-executor-native/-/dsh-tool-executor-native-0.2.3-alpha.2.tgz",
+      "integrity": "sha512-VYQqwL3cxhxRfRPFvKafeKJSKatsFgipKASSnuyeXP3/bsGpg/Ekoc7YQ82ElIrUDzPXLqUcfOuYUd3O9o9ChQ=="
+    },
+    {
+      "name": "@deepseek-ai/dsh-tool-executor-ptc",
+      "version": "0.2.3-alpha.2",
+      "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-tool-executor-ptc/-/dsh-tool-executor-ptc-0.2.3-alpha.2.tgz",
+      "integrity": "sha512-1jfpkLTUHjdwZoSFzi1vgWhcWkDbXID0RrTmFcKvW5p4XtqPVb86BmyPVGfOU5yN9Q4gdM+DKzyKN6qqR1+vhg=="
+    },
+    {
+      "name": "@deepseek-ai/dsh-client-ui-settings",
+      "version": "0.2.3-alpha.2",
+      "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-client-ui-settings/-/dsh-client-ui-settings-0.2.3-alpha.2.tgz",
+      "integrity": "sha512-iOY47hFuywPgvVQkDLHRStsTTFx9HScPz0rUMkXGhtMMQHlYD/m9849ASh3mfI8RGYgvnSmOfB9FbFyVh6K1+w=="
+    },
+    {
+      "name": "@deepseek-ai/dsh-client-ui-slots",
+      "version": "0.2.3-alpha.2",
+      "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-client-ui-slots/-/dsh-client-ui-slots-0.2.3-alpha.2.tgz",
+      "integrity": "sha512-4/WtIv72F1YkFPAaIF/Y0RZK2BDo7zvk/T99II2TeViWdmd8AS6RlJpRwVe3VpaHhqPRsbPXTLnTHd9czS3uAQ=="
+    },
+    {
+      "name": "@deepseek-ai/schemastery",
+      "version": "3.18.4",
+      "role": "plugin Schemastery",
+      "tarball": "https://registry.npmjs.org/@deepseek-ai/schemastery/-/schemastery-3.18.4.tgz",
+      "integrity": "sha512-SSXO6tYuyrIqKVbmOnIq0s+riUywYzouFMcnBluHF9n4KMo2G8HvEzhCYj6pj2617/glOjbJuVInJ9hfONsjkg=="
+    },
+    {
+      "name": "@deepseek-ai/schemastery",
+      "version": "3.20.0-alpha.1",
+      "role": "alpha Host Schemastery",
+      "tarball": "https://registry.npmjs.org/@deepseek-ai/schemastery/-/schemastery-3.20.0-alpha.1.tgz",
+      "integrity": "sha512-FOiLPnQmNNDz5kDzAMXQOjSAY6SZNHiz3CIOKOPqTZGwZTGCKqbTYtG9lQMi9sjOMUzqQPBH0lFunYsnlg8ddg=="
+    }
+  ],
+  "note": "Official npm tarballs were SHA-512 verified before selected unmodified JavaScript files were copied. The audit script reads files as data; offline tests separately run selected artifacts in a VM with mocked host services, never on a DSH 0.2.3 alpha installation."
+}

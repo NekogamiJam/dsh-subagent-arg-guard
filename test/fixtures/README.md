@@ -35,6 +35,12 @@ Copyright (c) 2026 LaoDing。MIT 许可原文见 [LICENSE.default-model](LICENSE
 
 Original SHA-256 values are recorded in [rc3/sha256.json](rc3/sha256.json). Copyright remains Copyright (c) 2026 DeepSeek; the MIT notice is identical to [LICENSE.DSH](LICENSE.DSH). No default-model plugin fixture was copied, so this does not assert that plugin's compatibility with rc.3.
 
+## DSH 0.2.3-alpha.1 / alpha.2
+
+[alpha2/provenance.json](alpha2/provenance.json) records the official npm tarball URLs and SHA-512 integrity for nine DSH packages from each alpha build, plus the two Schemastery runtime versions used by the Host and plugin. [audit-official-v023.mjs](../audit-official-v023.mjs) verifies both builds, confirms the guard-facing JavaScript artifacts are byte-identical across alpha.1 and alpha.2 (app-boot is checked for the public version API), and checks the shared tool-pipeline/executor contracts. The seven selected alpha.2 runtime files in [alpha2/](alpha2/) are copied byte-for-byte after registry integrity validation; [alpha2/sha256.json](alpha2/sha256.json) pins their local hashes.
+
+Offline tests run the selected official tool/pipeline/PTC JavaScript in a VM with mocked Host services. They validate the plugin adapter and error-code branches, but do **not** launch a DSH 0.2.3 alpha installation, full Desktop host, or real model API. No alpha device test is planned. DSH 0.2.3-alpha.1 and later require Node.js 24.22.3+ or 26.13.1+ at the host level.
+
 ## 完整性
 
 [sha256.json](sha256.json) 记录所有源码夹具的原始 SHA-256。从项目根目录运行 `node test/verify-fixtures.mjs` 验证。

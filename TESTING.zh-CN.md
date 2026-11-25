@@ -1,5 +1,16 @@
 # 测试报告：dsh-subagent-arg-guard
 
+## 0.3.6：DSH 0.2.3-alpha.1 / alpha.2 静态兼容
+
+**没有在任何 DSH 0.2.3 alpha 实机或完整 DSH 宿主上安装、启动、调用真实模型。** 用户指定的旧版本保证范围按现有 guard 精确白名单维持：DSH 0.2.2-rc.1 至 rc.5；不扩展到以前未支持的 0.2.2-alpha.2 / alpha.3。DSH 0.2.3-alpha.1/alpha.2 的适配仅由官方 npm 发行产物离线验证，不能表述为实机认证。
+
+`node test/audit-official-v023.mjs` 从 npm 拉取 alpha.1/alpha.2 的 9 个 DSH 官方包，以及插件用的 Schemastery 3.18.4 与 Host 3.20.0-alpha.1，共 20 个 tarball；先校验 registry SHA-512，再检查 runtime version API、subagent 工具 schema、typed errors、ToolExecutionPipeline 与 Native/PTC executor 接口。Schemastery 两版 ESM runtime 逐字节相同；两个 alpha 的 guard-facing 发行源码也逐字节一致（app-boot 版本实现单独检查公开接口）。七个未修改 alpha.2 JavaScript 文件位于 [alpha2/](test/fixtures/alpha2/)；tarball URL、integrity 和本地 SHA-256 记录在 [provenance.json](test/fixtures/alpha2/provenance.json) 和 [sha256.json](test/fixtures/alpha2/sha256.json)。审计脚本读取包内容但不运行；离线 VM 回归会运行选定的官方工具、pipeline 和 PTC 发行代码，并替换外部 Host/service。此测试不等于在真实 DSH alpha 宿主上通过。
+
+Alpha 版把路由拒绝/选模关闭改为 `SubagentError` 的 `MODEL_ROUTE_NOT_ALLOWED` / `MODEL_SELECTION_DISABLED`，路由错误消息也变化；缺少 provider/model 或 reasoning effort 配对则是带 `INVALID_ARGS` 的 `ToolArgsError`，可能附加 `list_subagent_models` 提示。guard 仅针对这些已知 code、精确消息、字段/路由对应关系恢复一次；未知 code 和不相关错误不恢复。alpha 的空字符串选模字段会被上游视为省略，本身不触发补救测试。
+
+DSH 0.2.3-alpha.1 起，**宿主**要求 Node.js 24.22.3+ 或 26.13.1+；插件保留 `node >=22` 以兼容现有 0.2.2 RC 环境。manifest/peer fences 只显式放行 alpha.1、alpha.2；后续 alpha、beta、rc、稳定版在完成各自审计前仍 fail-closed。
+**323 项离线回归通过，0 失败、0 跳过；26 个发行源码夹具 SHA-256 校验通过，5 个生产文件语法检查通过。** 保留全部已有 0.2.2-rc.1–rc.5 测试；新增 alpha.1/alpha.2 typed-error、route discovery hint、Native 与受控 PTC pipeline 验证。PTC runtime、Host 服务、Settings/GUI、重启与真实模型请求由替身或未覆盖；不要把离线 fixture 结果表述为 alpha 实机测试。
+
 ## 0.3.3：扩大 manifest 版本围栏
 
 `engines.dsh` 及 `@deepseek-ai/dsh-app-boot`、`@deepseek-ai/dsh-client-ui-settings`、`@deepseek-ai/dsh-client-ui-slots` 三个 peer dependency 均声明为 `>=0.2.2-rc.1 <0.3.0-0`。这是安装/依赖解析围栏；运行时 `SUPPORTED_VERSIONS` 仍精确列出 rc.1–rc.5，rc.6 等未核验版本仍会 fail-closed。新增回归测试锁定四个 manifest 范围。此次没有改变运行时适配逻辑。

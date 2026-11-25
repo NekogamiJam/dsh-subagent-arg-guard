@@ -1,11 +1,11 @@
 import vm from 'node:vm';
 import fs from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
+import * as nodeUtil from 'node:util';
 
-// Unmodified official fixtures; rc.4/rc.5 reuse byte-identical rc.3 artifacts.
-// See audit-official-rcs.mjs. External host/services are isolated.
+// alpha.1/alpha.2 selected guard-facing artifacts are byte-identical; see audit-official-v023.mjs.
 export async function loadCore(version = '0.2.2-rc.1') {
-  if (!['0.2.2-rc.1', '0.2.2-rc.2', '0.2.2-rc.3', '0.2.2-rc.4', '0.2.2-rc.5'].includes(version)) throw new Error('unknown fixture version');
+  if (!['0.2.2-rc.1', '0.2.2-rc.2', '0.2.2-rc.3', '0.2.2-rc.4', '0.2.2-rc.5', '0.2.3-alpha.1', '0.2.3-alpha.2'].includes(version)) throw new Error('unknown fixture version');
   const context = vm.createContext({ console, AbortController, AbortSignal, setTimeout, clearTimeout, structuredClone, Symbol, Error });
   const modules = new Map();
   const chain = new Proxy(function(value) { return value; }, { get: () => chain, apply: (_fn, _this, args) => (args[0] && typeof args[0] === 'object' && !Array.isArray(args[0])) ? Object.assign(chain, {}) : chain });
@@ -14,6 +14,9 @@ export async function loadCore(version = '0.2.2-rc.1') {
   const z = new Proxy({}, { get: () => () => schemaNode });
   class HarnessError extends Error {
     constructor(message, code, options) { super(message, options); this.code = code; }
+  }
+  class SubagentError extends HarnessError {
+    constructor(message, code, options) { super(message, code, options); this.name = 'SubagentError'; this.code = code; }
   }
   const deepFreeze = value => {
     if (value && typeof value === 'object' && !Object.isFrozen(value)) {
@@ -30,7 +33,11 @@ export async function loadCore(version = '0.2.2-rc.1') {
     return false;
   };
   const externals = {
-    '@deepseek-ai/dsh-llm': { HarnessError, ReasoningEffortId: value => value, createToolResultMessage: value => value, createUserMessage: value => value },
+    '@deepseek-ai/dsh-llm': { HarnessError, ReasoningEffortId: value => value, createToolResultMessage: value => value, createUserMessage: value => value, resolveImageAttachmentAccess: () => ({}) },
+    '@deepseek-ai/dsh-error': { HarnessError },
+    '@deepseek-ai/dsh-llm/message': { extractTextContent: value => value },
+    '@deepseek-ai/dsh-ptc-runtime': { PtcImage: class {}, PtcInspectableValue: class {} },
+    'node:util': nodeUtil,
     '@deepseek-ai/dsh-util-values': { deepFreeze, snapshotJsonValue: value => isJsonValue(value) ? structuredClone(value) : undefined, isJsonValue, assertNever: value => { throw new Error(`unexpected ${value}`); } },
     '@deepseek-ai/dsh-scope': { scopeTarget: (_tools, agent) => agent, scopeOf: () => undefined, scopeChainOf: () => [], AnonymousEntries: class {}, NamedEntries: class {}, ScopedLayers: class {} },
     '@deepseek-ai/cordis': { Service: class {}, symbols: {} },
@@ -38,10 +45,11 @@ export async function loadCore(version = '0.2.2-rc.1') {
     'zod': { z },
     '@deepseek-ai/dsh-brand': { brandString: value => value },
     '@deepseek-ai/dsh-sandbox': { ESCALATION_TARGETS: ['workspace-write', 'danger-full-access'], approveEscalation: () => { throw Error('approval not configured in test'); }, validateEscalationArgs: () => [] },
-    '@deepseek-ai/dsh-subagent': { assertSubagentMaxDepth: () => {}, delegationDepthOf: () => 0, parentAgentOptionsForDelegation: parent => parent.options }
+    '@deepseek-ai/dsh-subagent': { SubagentError, assertSubagentMaxDepth: () => {}, delegationDepthOf: () => 0, parentAgentOptionsForDelegation: parent => parent.options }
   };
   const paths = {
     '@deepseek-ai/dsh-tools': 'tools.js', '@deepseek-ai/dsh-tools/pipeline': 'pipeline.js',
+    './_chunks/ptc-calls-B2yhcs6M.js': 'ptc-calls.js',
     native: 'native.js', ptc: 'ptc.js', subagent: 'subagent.js', defaults: 'default-model.js'
   };
   async function getModule(specifier) {
@@ -53,7 +61,9 @@ export async function loadCore(version = '0.2.2-rc.1') {
       return mod;
     }
     const filename = paths[specifier] ?? specifier.replace(/^\.\//, '');
-    const subdir = filename === 'default-model.js' || version === '0.2.2-rc.1' ? '' : version === '0.2.2-rc.2' ? 'rc2/' : 'rc3/';
+    const subdir = filename === 'default-model.js' || version === '0.2.2-rc.1' ? '' :
+      version === '0.2.2-rc.2' ? 'rc2/' :
+      ['0.2.3-alpha.1', '0.2.3-alpha.2'].includes(version) ? 'alpha2/' : 'rc3/';
     const url = new URL(`./fixtures/${subdir}${filename}`, import.meta.url);
     const source = await fs.readFile(url, 'utf8');
     const mod = new vm.SourceTextModule(source, { context, identifier: fileURLToPath(url) });

@@ -23,5 +23,5 @@ A PR, a push to `main`, or an Actions **Run workflow** dispatch runs tests and g
 ## Publish the next release
 
 1. Update the version in `package.json` and any versioned installation links in both READMEs. Merge the release commit into `main` and make sure its check run passes.
-2. Tag that commit with the exact manifest version, `v<major>.<minor>.<patch>`, and push **only that new tag**, e.g. `git push origin v0.3.5` after creating it. Do not reuse the `v0.3.4` tag or push test tags. Release one version at a time.
+2. Tag that commit with the exact manifest version, `v<major>.<minor>.<patch>`, and push **only that new tag**, e.g. `git push origin v0.3.7` after creating it. Do not reuse the `v0.3.6` tag or push test tags. Release one version at a time.
 3. Confirm both publish jobs succeed and verify the npm package's provenance and the GitHub Release assets. If a later job fails, use **Re-run failed jobs** on that run after diagnosing the failure; do not force-push the tag or publish from a local shell. The workflow will not overwrite a published version or an asset with different contents.
