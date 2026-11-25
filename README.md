@@ -1,117 +1,117 @@
 # dsh-subagent-arg-guard
 
-An independent DSH subagent argument-recovery plugin.
+> **[English documentation](README.en-US.md)**
 
-When the native `subagent` / `subagent_fork` tool fails because of a known model-selection argument error, this plugin removes `provider`, `model`, and `reasoning_effort` and retries once, restoring the call's original default behavior. It does not require a default-model plugin, take over a model pool, modify valid explicit selections, or widen permissions.
+独立的 DSH 子代理参数补救插件。
 
-> **For Chinese readers:** see the [Chinese documentation](README.zh-CN.md).
+当原生 `subagent` / `subagent_fork` 因特定的选模参数错误而失败时，删除 `provider`、`model`、`reasoning_effort` 后重试一次，让调用恢复原本的默认行为。无需安装默认模型插件，也不会接管模型池、修改合法显式选择或放宽权限。
 
-### Verification scope
+### 验证范围
 
-Version **0.3.2** added exact runtime support for DSH **0.2.2-rc.4 and rc.5**. The DSH `latest` channel went directly from rc.3 to rc.5. **rc.4 receives static compatibility verification only; no live rc.4 host test is planned.** The relevant official npm build files for both target versions matched rc.3 byte for byte, and offline tests exercise the new plugin version branches against those shared fixtures. On Windows Desktop rc.5 with plugin 0.3.2 enabled, a native `subagent` call with empty model-selection fields and a call with an unlisted explicit route both completed through the default route. An invalid agent name still returned its native error. This is a limited live smoke test, not a full Native/PTC, fork-repair, settings, or restart matrix.
+**0.3.2** 版本新增对 DSH **0.2.2-rc.4 和 rc.5** 的精确运行时支持。DSH 的 `latest` 从 rc.3 直接升到 rc.5，**rc.4 仅做静态兼容核验，不计划在 rc.4 宿主实机测试**。两个目标版本的相关官方 npm 构建文件与 rc.3 逐字节一致；离线测试复用这些夹具验证插件新增的版本分支。在 Windows Desktop rc.5 启用插件 0.3.2 后，原生 `subagent` 的空选模字段调用与未获准显式路由调用均回退到默认路径并完成；非法代理名仍返回原生错误。这是有限的实机冒烟，不代表完整的 Native/PTC、fork 补救、设置或重启验证。
 
-Earlier rc.3 verification consisted of one minimal real-host `subagent` call returning `RC3_LIVE_SMOKE_OK`; it was not a complete Native/PTC, fork, restart-persistence, or real-model-API matrix. The implementation selects its adapter by exact DSH version and fails closed for unknown versions.
+早期 rc.3 实机验证只完成一次最小真实 `subagent` 调用并返回 `RC3_LIVE_SMOKE_OK`；这不代表完整 Native/PTC、fork、重启持久化或真实模型 API 矩阵。运行时按精确 DSH 版本选择适配器，未知版本 fail-closed。
 
-The **0.3.3** manifest declares `engines.dsh` and all three optional DSH peer fences as `>=0.2.2-rc.1 <0.3.0-0`. This metadata range does not itself promise runtime compatibility: the plugin still enables runtime behavior only for the exact audited DSH versions **0.2.2-rc.1 through rc.5** and fails closed on other versions until audited.
+**0.3.3** 的 manifest 将 `engines.dsh` 和三个可选 DSH peer 围栏统一声明为 `>=0.2.2-rc.1 <0.3.0-0`。此元数据范围不代表运行时代码已兼容范围内所有版本：插件目前仍只对经过核验的精确版本 **0.2.2-rc.1 至 rc.5** 启用逻辑，其他版本仍会 fail-closed，直到完成核验。
 
-At runtime, the plugin uses the host's public version API to select an exact branch and disables itself when the version is unknown or detection fails. It provides six switches under **More > Settings > Subagent Tools and Argument Recovery**: whether to allow `subagent`, whether to allow `subagent_fork`, and the four original recovery settings. The two tools can be disabled independently; **turning off argument recovery does not disable the tool-access rules**. The existing entry ID is retained, so old configuration is not migrated or discarded. The former custom configuration row on the Installed page has been removed. Changes save automatically and later calls read the new settings without a refresh or restart. The settings schema uses a lightweight Schemastery dependency; the host app-boot package and client slots/settings packages are optional peers. See the [Chinese documentation](README.zh-CN.md) for the full details.
+运行时使用宿主公开版本 API 精确分支，未知版本/检测失败时插件停用。在「更多 → 设置 → 子代理工具与参数补救」提供六项开关：允许调用 `subagent`、允许调用 `subagent_fork`，以及原有四项补救设置。两种工具可以独立禁用，**关闭参数补救不影响工具禁用规则**。配置沿用原 entry ID，不迁移或丢弃旧配置；原插件配置行的自定义页面已移除。勾选后自动保存，后续调用读取新设置，无需刷新或重启。设置 schema 使用 Schemastery 轻量依赖，宿主 app-boot、客户端 slots/settings 仅声明 optional peers。
 
-The tool switches reject new calls at the native prepare and dispatch entry points. They **do not cancel calls that have already started or subagents that already exist**; the tools may still appear in a list already received by the model. They control only these two tool names and do not intercept other plugins that call the subagent service directly. Disabling the whole plugin also removes these tool restrictions; this is not a global subagent security sandbox.
+工具开关在原生 prepare 和 dispatch 入口拒绝新调用，**不取消已开始的调用或已创建的子代理**；工具可能仍出现在模型已收到的列表中。只控制这两个名称，不拦截其他插件直接调用子代理服务的入口。禁用整个插件后，这些工具限制也随之解除；它不是全局子代理安全沙箱。
 
-## Documentation and downloads
+## 文档与下载
 
-- [Chinese documentation](README.zh-CN.md): exact recovery scope, compatibility limits, audit semantics, and installation instructions.
-- [Test and verification report](TESTING.zh-CN.md): offline regression and official artifact checks, the minimal real rc.3 host smoke test, the rc.1 native Config/version read-only probe, explicit unverified areas, and historical smoke-test evidence.
-- [GitHub Releases](https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases): packages and SHA-256 files.
-- [npm](https://www.npmjs.com/package/dsh-subagent-arg-guard): the same archive as the matching GitHub Release.
+- [英文说明 / English documentation](README.en-US.md)：英文版使用说明。
+- [测试与验证报告](TESTING.zh-CN.md)：离线回归和官方产物核验、rc.3 宿主最小真实冒烟、rc.1 原生 Config/版本只读探针与明确的未验证项；另保留旧版真实冒烟历史。
+- [GitHub Releases](https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases)：安装包与 SHA-256 校验文件。
+- [npm](https://www.npmjs.com/package/dsh-subagent-arg-guard)：与同版本 GitHub Release 使用同一安装包。
 
-## Version and dependencies
+## 版本与依赖
 
-Use **v0.3.4**. This version adds a localized name and summary and a shield icon to the DSH Plugins page. Runtime compatibility and guard behavior are unchanged.
+请使用 **v0.3.5**。此版本将中文设为默认 README，并保留英文版；运行时兼容性与守卫逻辑不变。
 
-## Quick installation
+## 快速安装
 
-The links and commands below install the fixed **v0.3.4** release.
+下列链接和命令安装固定版本 **v0.3.5**。
 
-**Install from npm or from a GitHub Release.** The npm package declares this repository in `repository.url` so the DSH plugin market can associate the two sources automatically. Use the market, run `dsh plugin --profile desktop add dsh-subagent-arg-guard@0.3.4`, or follow the GitHub `.tgz` instructions below.
+**支持 npm 和 GitHub Release 两种来源。** npm 包的 `repository.url` 指向本仓库，供 DSH 插件市场自动关联。可通过插件市场安装，或执行 `dsh plugin --profile desktop add dsh-subagent-arg-guard@0.3.5`；下方也保留 GitHub `.tgz` 安装方法。
 
-- Runtime support is currently audited for **DSH 0.2.2-rc.1 through rc.5**. rc.4 was verified statically only; rc.5 passed a limited live smoke test. The broader manifest range is not a runtime-compatibility claim. Do not grant a version exemption.
-- [v0.3.4 package](https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.3.4/dsh-subagent-arg-guard-0.3.4.tgz)
-- [SHA-256 file for the same version](https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.3.4/SHA256SUMS.txt)
+- 运行时目前仅核验支持 **DSH 0.2.2-rc.1 至 rc.5**。rc.4 仅静态核验，rc.5 通过有限实机冒烟；较宽的 manifest 围栏不代表运行时兼容性承诺。不要授予版本豁免。
+- [v0.3.5 安装包直链](https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.3.5/dsh-subagent-arg-guard-0.3.5.tgz)
+- [同版本 SHA-256 校验文件](https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.3.5/SHA256SUMS.txt)
 
-### Method 1: Ask a DSH conversation to install it (recommended)
+### 方法一：在 DSH 对话中让模型安装（推荐）
 
-Copy the following text into a conversation in the DSH profile where you want to use the plugin:
+把下面这段话复制到**你要使用插件的 DSH profile 中的会话**：
 
 ```text
-Use DSH's plugin_manager tool to install and enable dsh-subagent-arg-guard.
-First use list_bundles to check the current installation, then install it with install_bundle:
-target: https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.3.4/dsh-subagent-arg-guard-0.3.4.tgz
+请使用 DSH 的 plugin_manager 工具安装并启用 dsh-subagent-arg-guard。
+先 list_bundles 检查当前安装状态，再通过 install_bundle 安装：
+target: https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.3.5/dsh-subagent-arg-guard-0.3.5.tgz
 enabled: true
 
-First check that the host is DSH 0.2.2-rc.1 through rc.5. Do not grant a version exemption.
-Stop on any other DSH version. Do not grant a version exemption or upgrade the host.
-For the GitHub Release source, use the URL above directly.
-do not install an additional default-model plugin, do not modify ASAR, and do not approve extra install scripts.
-Keep the current registry configuration. Omit optional arguments when unused; do not fill them with empty strings.
-After installation, run list_bundles again and confirm that the version is 0.3.4 and both installed and enabled are true.
-Report the application status; if a restart is required, say so explicitly and do not describe an unapplied change as successful.
+请先确认宿主为 DSH 0.2.2-rc.1 至 rc.5，不授予版本豁免。
+其他 DSH 版本请停止，不授予版本豁免，不升级宿主。
+若选择 GitHub Release 来源，请直接使用以上地址；
+不额外安装默认模型插件，不修改 ASAR，不批准额外的安装脚本。
+沿用当前 registry 配置；可选参数不用时请省略，不要填写空字符串。
+完成后再次 list_bundles，确认版本为 0.3.5、installed 和 enabled 都为 true，
+并报告 application 状态；如果需要重启，请明确告诉我，不要把未生效说成成功。
 ```
 
-This is a persistent change to the current profile and affects its other sessions. Approve the installation when DSH asks; do not disable all security protections just to install it. `application: applied` means the change was applied. If the result is `restart-required`, follow the returned `nextStep` and verify again. If `plugin_manager` is unavailable, use the CLI method below instead of inventing a successful installation.
+这是对**当前 profile** 的持久改动，会影响该 profile 的其他会话。按 DSH 提示批准安装；不要为了安装而无条件关闭所有安全保护。`application: applied` 表示已应用；若是 `restart-required`，按返回的 `nextStep` 重启后再核对。没有 `plugin_manager` 工具时，使用下面的命令行方法，不要让模型虚构安装成功。
 
-### Method 2: Install the GitHub URL with the DSH CLI
+### 方法二：直接用 DSH 命令行安装 GitHub URL
 
-The example below uses the commonly used Desktop `desktop` profile. If you use another profile, replace `desktop` with its actual name. Do not invent a new name, or the CLI may initialize another profile.
+以下以桌面版常用的 `desktop` profile 为例。若你使用别的 profile，把命令中的 `desktop` 改成当前使用的名称；不要随意填一个新名字，否则 CLI 可能初始化另一个 profile。
 
-Fully exit DSH using this profile first, including the tray process on Desktop, then run:
+先完全退出使用该 profile 的 DSH（桌面版包括托盘），在终端执行：
 
 ```sh
-dsh plugin --profile desktop add "https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.3.4/dsh-subagent-arg-guard-0.3.4.tgz"
+dsh plugin --profile desktop add "https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.3.5/dsh-subagent-arg-guard-0.3.5.tgz"
 ```
 
-After the command succeeds, reopen DSH and verify the installation and enabled state with `plugin_manager` `list_bundles` or the plugin manager page. DSH identifies the bundle through its own profile package-management flow; do not replace this with `npm install dsh-subagent-arg-guard` in an ordinary workspace.
+安装命令成功后重新打开 DSH，并用 `plugin_manager` 的 `list_bundles` 或插件管理页核对安装与启用状态。DSH 会通过自己的 profile 包管理流程识别 bundle；不要在普通工作区中用 `npm install dsh-subagent-arg-guard` 代替。
 
-If the standard Windows `dsh` command is not on `PATH`, use the launcher path in PowerShell:
+如果 Windows 标准安装的 `dsh` 没有加入 PATH，可在 PowerShell 使用启动器路径：
 
 ```powershell
-& "$env:LOCALAPPDATA\Programs\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop add "https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.3.4/dsh-subagent-arg-guard-0.3.4.tgz"
+& "$env:LOCALAPPDATA\Programs\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop add "https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.3.5/dsh-subagent-arg-guard-0.3.5.tgz"
 ```
 
-That path applies only to the standard Windows installation location. Use the actual launcher for custom installations and other operating systems.
+该路径只适用于 Windows 标准安装位置；自定义安装或其他系统请使用各自实际的 `dsh` 启动器。
 
-### Method 3: Download the package in a browser and install it locally
+### 方法三：浏览器下载后，作为本地包安装
 
-If the model or installation entry cannot handle a remote URL, download the `.tgz` and `SHA256SUMS.txt` from the Release above. Verify the package SHA-256 in the download directory, for example in PowerShell:
+如果模型或安装入口不能处理远程 URL，先从上述 Release 下载 `.tgz` 和 `SHA256SUMS.txt`。在下载目录中核对包的 SHA-256，例如 PowerShell：
 
 ```powershell
-Get-FileHash .\dsh-subagent-arg-guard-0.3.4.tgz -Algorithm SHA256
+Get-FileHash .\dsh-subagent-arg-guard-0.3.5.tgz -Algorithm SHA256
 ```
 
-The output must match the value in `SHA256SUMS.txt`. Then fully exit DSH and install the downloaded package in the same PowerShell session:
+输出应与 `SHA256SUMS.txt` 中的值一致。然后完全退出 DSH，在同一 PowerShell 中安装下载包：
 
 ```powershell
-$package = (Resolve-Path ".\dsh-subagent-arg-guard-0.3.4.tgz").Path
+$package = (Resolve-Path ".\dsh-subagent-arg-guard-0.3.5.tgz").Path
 dsh plugin --profile desktop add "$package"
 ```
 
-The local package path must be absolute; `Resolve-Path` performs that conversion. If `dsh` is not on `PATH`, use the Windows launcher shown above. Reopen DSH and verify the enabled state afterward.
+本地路径需要绝对路径，上面的 `Resolve-Path` 会完成转换；`dsh` 不在 PATH 时换用前述 Windows 启动器。完成后重新打开 DSH 并核对启用状态。
 
-### Disable or uninstall
+### 关闭或卸载
 
-In the current profile, ask the model to run `list_bundles` first, then use `set_bundle` to set `enabled` to `false` for `dsh-subagent-arg-guard`, or use `remove_bundle` to uninstall it. If the result says that stopping or restarting is required, follow `nextStep`.
+可在当前 profile 让模型先 `list_bundles`，再用 `set_bundle` 把目标 `dsh-subagent-arg-guard` 的 `enabled` 设为 `false`，或用 `remove_bundle` 卸载；若返回需要停止/重启，请按 `nextStep` 操作。
 
-From the CLI, fully exit DSH using the profile first, then run this and reopen DSH:
+命令行卸载同样应先完全退出使用该 profile 的 DSH，再执行并重新打开：
 
 ```sh
 dsh plugin --profile desktop remove dsh-subagent-arg-guard
 ```
 
-**Installation scope:** Installing a GitHub Release archive may still use the configured registry to resolve dependencies. npm and GitHub carry the same versioned archive; install only one.
+**安装范围说明：**从 GitHub 下载插件包时，安装器仍可能按现有 registry 配置获取依赖。npm 与 GitHub 使用相同版本的安装包，不需要安装两份。
 
-## Verify from source
+## 从源码验证
 
-No dependencies, network access, or real model credentials are required:
+不需要安装依赖，也不需要联网或真实模型凭据：
 
 ```sh
 node test/verify-fixtures.mjs
@@ -119,6 +119,6 @@ node --experimental-vm-modules test/all.test.mjs
 npm run check
 ```
 
-## License
+## 许可
 
-This plugin is distributed under the [MIT License](LICENSE). Test fixtures are not included in the production package; their public sources and third-party licenses are listed in the [fixture notes](test/fixtures/README.md).
+本插件采用 [MIT 许可证](LICENSE)。测试夹具不进入生产安装包，其公开来源与第三方许可证见 [夹具说明](test/fixtures/README.md)。

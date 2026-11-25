@@ -1,0 +1,124 @@
+# dsh-subagent-arg-guard
+
+An independent DSH subagent argument-recovery plugin.
+
+When the native `subagent` / `subagent_fork` tool fails because of a known model-selection argument error, this plugin removes `provider`, `model`, and `reasoning_effort` and retries once, restoring the call's original default behavior. It does not require a default-model plugin, take over a model pool, modify valid explicit selections, or widen permissions.
+
+> **For Chinese readers:** see the [Chinese documentation](README.md).
+
+### Verification scope
+
+Version **0.3.2** added exact runtime support for DSH **0.2.2-rc.4 and rc.5**. The DSH `latest` channel went directly from rc.3 to rc.5. **rc.4 receives static compatibility verification only; no live rc.4 host test is planned.** The relevant official npm build files for both target versions matched rc.3 byte for byte, and offline tests exercise the new plugin version branches against those shared fixtures. On Windows Desktop rc.5 with plugin 0.3.2 enabled, a native `subagent` call with empty model-selection fields and a call with an unlisted explicit route both completed through the default route. An invalid agent name still returned its native error. This is a limited live smoke test, not a full Native/PTC, fork-repair, settings, or restart matrix.
+
+Earlier rc.3 verification consisted of one minimal real-host `subagent` call returning `RC3_LIVE_SMOKE_OK`; it was not a complete Native/PTC, fork, restart-persistence, or real-model-API matrix. The implementation selects its adapter by exact DSH version and fails closed for unknown versions.
+
+The **0.3.3** manifest declares `engines.dsh` and all three optional DSH peer fences as `>=0.2.2-rc.1 <0.3.0-0`. This metadata range does not itself promise runtime compatibility: the plugin still enables runtime behavior only for the exact audited DSH versions **0.2.2-rc.1 through rc.5** and fails closed on other versions until audited.
+
+At runtime, the plugin uses the host's public version API to select an exact branch and disables itself when the version is unknown or detection fails. It provides six switches under **More > Settings > Subagent Tools and Argument Recovery**: whether to allow `subagent`, whether to allow `subagent_fork`, and the four original recovery settings. The two tools can be disabled independently; **turning off argument recovery does not disable the tool-access rules**. The existing entry ID is retained, so old configuration is not migrated or discarded. The former custom configuration row on the Installed page has been removed. Changes save automatically and later calls read the new settings without a refresh or restart. The settings schema uses a lightweight Schemastery dependency; the host app-boot package and client slots/settings packages are optional peers. See the [Chinese documentation](README.md) for the full details.
+
+The tool switches reject new calls at the native prepare and dispatch entry points. They **do not cancel calls that have already started or subagents that already exist**; the tools may still appear in a list already received by the model. They control only these two tool names and do not intercept other plugins that call the subagent service directly. Disabling the whole plugin also removes these tool restrictions; this is not a global subagent security sandbox.
+
+## Documentation and downloads
+
+- [Chinese documentation](README.md): exact recovery scope, compatibility limits, audit semantics, and installation instructions.
+- [Test and verification report](TESTING.zh-CN.md): offline regression and official artifact checks, the minimal real rc.3 host smoke test, the rc.1 native Config/version read-only probe, explicit unverified areas, and historical smoke-test evidence.
+- [GitHub Releases](https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases): packages and SHA-256 files.
+- [npm](https://www.npmjs.com/package/dsh-subagent-arg-guard): the same archive as the matching GitHub Release.
+
+## Version and dependencies
+
+Use **v0.3.5**. This release changes the default README language to Chinese and retains this English edition. Runtime compatibility and guard behavior are unchanged.
+
+## Quick installation
+
+The links and commands below install the fixed **v0.3.5** release.
+
+**Install from npm or from a GitHub Release.** The npm package declares this repository in `repository.url` so the DSH plugin market can associate the two sources automatically. Use the market, run `dsh plugin --profile desktop add dsh-subagent-arg-guard@0.3.5`, or follow the GitHub `.tgz` instructions below.
+
+- Runtime support is currently audited for **DSH 0.2.2-rc.1 through rc.5**. rc.4 was verified statically only; rc.5 passed a limited live smoke test. The broader manifest range is not a runtime-compatibility claim. Do not grant a version exemption.
+- [v0.3.5 package](https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.3.5/dsh-subagent-arg-guard-0.3.5.tgz)
+- [SHA-256 file for the same version](https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.3.5/SHA256SUMS.txt)
+
+### Method 1: Ask a DSH conversation to install it (recommended)
+
+Copy the following text into a conversation in the DSH profile where you want to use the plugin:
+
+```text
+Use DSH's plugin_manager tool to install and enable dsh-subagent-arg-guard.
+First use list_bundles to check the current installation, then install it with install_bundle:
+target: https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.3.5/dsh-subagent-arg-guard-0.3.5.tgz
+enabled: true
+
+First check that the host is DSH 0.2.2-rc.1 through rc.5. Do not grant a version exemption.
+Stop on any other DSH version. Do not grant a version exemption or upgrade the host.
+For the GitHub Release source, use the URL above directly.
+do not install an additional default-model plugin, do not modify ASAR, and do not approve extra install scripts.
+Keep the current registry configuration. Omit optional arguments when unused; do not fill them with empty strings.
+After installation, run list_bundles again and confirm that the version is 0.3.5 and both installed and enabled are true.
+Report the application status; if a restart is required, say so explicitly and do not describe an unapplied change as successful.
+```
+
+This is a persistent change to the current profile and affects its other sessions. Approve the installation when DSH asks; do not disable all security protections just to install it. `application: applied` means the change was applied. If the result is `restart-required`, follow the returned `nextStep` and verify again. If `plugin_manager` is unavailable, use the CLI method below instead of inventing a successful installation.
+
+### Method 2: Install the GitHub URL with the DSH CLI
+
+The example below uses the commonly used Desktop `desktop` profile. If you use another profile, replace `desktop` with its actual name. Do not invent a new name, or the CLI may initialize another profile.
+
+Fully exit DSH using this profile first, including the tray process on Desktop, then run:
+
+```sh
+dsh plugin --profile desktop add "https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.3.5/dsh-subagent-arg-guard-0.3.5.tgz"
+```
+
+After the command succeeds, reopen DSH and verify the installation and enabled state with `plugin_manager` `list_bundles` or the plugin manager page. DSH identifies the bundle through its own profile package-management flow; do not replace this with `npm install dsh-subagent-arg-guard` in an ordinary workspace.
+
+If the standard Windows `dsh` command is not on `PATH`, use the launcher path in PowerShell:
+
+```powershell
+& "$env:LOCALAPPDATA\Programs\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop add "https://github.com/NekogamiJam/dsh-subagent-arg-guard/releases/download/v0.3.5/dsh-subagent-arg-guard-0.3.5.tgz"
+```
+
+That path applies only to the standard Windows installation location. Use the actual launcher for custom installations and other operating systems.
+
+### Method 3: Download the package in a browser and install it locally
+
+If the model or installation entry cannot handle a remote URL, download the `.tgz` and `SHA256SUMS.txt` from the Release above. Verify the package SHA-256 in the download directory, for example in PowerShell:
+
+```powershell
+Get-FileHash .\dsh-subagent-arg-guard-0.3.5.tgz -Algorithm SHA256
+```
+
+The output must match the value in `SHA256SUMS.txt`. Then fully exit DSH and install the downloaded package in the same PowerShell session:
+
+```powershell
+$package = (Resolve-Path ".\dsh-subagent-arg-guard-0.3.5.tgz").Path
+dsh plugin --profile desktop add "$package"
+```
+
+The local package path must be absolute; `Resolve-Path` performs that conversion. If `dsh` is not on `PATH`, use the Windows launcher shown above. Reopen DSH and verify the enabled state afterward.
+
+### Disable or uninstall
+
+In the current profile, ask the model to run `list_bundles` first, then use `set_bundle` to set `enabled` to `false` for `dsh-subagent-arg-guard`, or use `remove_bundle` to uninstall it. If the result says that stopping or restarting is required, follow `nextStep`.
+
+From the CLI, fully exit DSH using the profile first, then run this and reopen DSH:
+
+```sh
+dsh plugin --profile desktop remove dsh-subagent-arg-guard
+```
+
+**Installation scope:** Installing a GitHub Release archive may still use the configured registry to resolve dependencies. npm and GitHub carry the same versioned archive; install only one.
+
+## Verify from source
+
+No dependencies, network access, or real model credentials are required:
+
+```sh
+node test/verify-fixtures.mjs
+node --experimental-vm-modules test/all.test.mjs
+npm run check
+```
+
+## License
+
+This plugin is distributed under the [MIT License](LICENSE). Test fixtures are not included in the production package; their public sources and third-party licenses are listed in the [fixture notes](test/fixtures/README.md).

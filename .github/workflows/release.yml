@@ -59,7 +59,7 @@ jobs:
           const [pack] = JSON.parse(readFileSync(`${process.env.RUNNER_TEMP}/pack.json`, 'utf8'));
           assert.equal(pack.filename, `${name}-${m.version}.tgz`);
           assert.deepEqual(pack.files.map(({path}) => path).sort(), [
-            'LICENSE', 'README.md', 'README.zh-CN.md', 'TESTING.zh-CN.md', 'cordis.patch.yml',
+            'LICENSE', 'README.md', 'README.en-US.md', 'TESTING.zh-CN.md', 'cordis.patch.yml',
             'icon.svg', 'lib/access.js', 'lib/client.js', 'lib/guard.js', 'lib/index.js', 'lib/runtime.js',
             'locale/en.json', 'locale/zh.json', 'package.json',
           ].sort());
